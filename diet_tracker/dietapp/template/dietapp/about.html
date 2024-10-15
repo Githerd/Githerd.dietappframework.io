@@ -1,0 +1,53 @@
+{% extends 'dietapp/base.html' %}
+{% load ststic %}
+{% block content %}
+<div class="container mt-5">
+    <h1>About DietApp</h1>
+    <p class="lead">Welcome to DietApp, your personalized nutrition and health companion!</p>
+    <p>
+        DietApp is designed to help you achieve your fitness and dietary goals by providing tailored meal plans, tracking your health metrics, and giving you insights into your overall wellness.
+    </p>
+    
+    <h2>Features</h2>
+    <ul class="list-group mb-4">
+        <li class="list-group-item">
+            <h4>Personalized Nutrition Plans</h4>
+            <p>
+                Based on your age, weight, height, and goals, we create customized meal plans to ensure you're getting the right balance of nutrients.
+            </p>
+        </li>
+        <li class="list-group-item">
+            <h4>Health Data Tracking</h4>
+            <p>
+                Track your daily intake, exercise routines, and monitor your progress over time. Our app helps you maintain a record of your calorie intake and calories burned through exercise.
+            </p>
+        </li>
+        <li class="list-group-item">
+            <h4>AI-Powered Recommendations</h4>
+            <p>
+                Use our integrated AI-powered assistant to ask questions about nutrition, exercise, and general health tips. Get instant answers to help guide your fitness journey.
+            </p>
+        </li>
+        <li class="list-group-item">
+            <h4>Community Support</h4>
+            <p>
+                Join a community of like-minded individuals who are also on their fitness journey. Share tips, recipes, and support each other in achieving a healthier lifestyle.
+            </p>
+        </li>
+    </ul>
+
+    <h2>Why Choose DietApp?</h2>
+    <p>
+        At DietApp, we believe that a healthy lifestyle is more than just counting calories. Our goal is to empower you with the tools and knowledge to make better food choices, set achievable fitness goals, and maintain a balanced lifestyle. 
+    </p>
+    <p>
+        Whether you're looking to lose weight, gain muscle, or simply maintain a healthier routine, DietApp is here to guide you every step of the way.
+    </p>
+
+    <h2>Get Started Today!</h2>
+    <p>
+        Ready to take control of your health? <a href="{% url 'register' %}">Sign up now</a> and start your journey with DietApp.
+        If you're already a member, <a href="{% url 'login' %}">log in</a> to access your personalized dashboard.
+    </p>
+</div>
+{% endblock %}

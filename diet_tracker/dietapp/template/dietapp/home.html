@@ -1,0 +1,41 @@
+{% extends 'dietapp/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Welcome to DietApp</h1>
+        <p class="lead">Your ultimate companion for a healthier lifestyle.</p>
+        <hr class="my-4">
+        <p>Track your meals, get personalized diet plans, and achieve your fitness goals with our AI-powered insights.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'register' %}" role="button">Get Started</a>
+        <a class="btn btn-outline-secondary btn-lg" href="{% url 'about' %}" role="button">Learn More</a>
+    </div>
+
+    <h2 class="mt-5">Features</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Personalized Nutrition Plans</h5>
+                    <p class="card-text">Receive meal plans tailored to your needs and goals, from weight loss to muscle gain.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Track Your Progress</h5>
+                    <p class="card-text">Log your daily intake, exercise routines, and track your weight over time.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">AI-Powered Assistance</h5>
+                    <p class="card-text">Get advice and recommendations with our AI assistant for all your diet and health queries.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

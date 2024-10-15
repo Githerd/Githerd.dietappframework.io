@@ -1,0 +1,16 @@
+{% extends "dietapp/base.html" %}
+{% load crispy_forms_tags %} <!-- Load crispy forms -->
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="alert alert-success">
+                <h4>You have been logged out successfully.</h4>
+                <p>Thank you for visiting DietApp. We hope to see you again soon!</p>
+                <a href="{% url 'login' %}" class="btn btn-primary mt-3">Log back in</a>
+                <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Return to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
