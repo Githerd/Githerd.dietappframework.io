@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-from django.db import models
 from django.contrib.auth.models import User
 
 
@@ -12,6 +11,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
 
 # User Profile model to store additional user information
 class UserProfile(models.Model):
@@ -40,14 +40,16 @@ class UserProfile(models.Model):
             return round(self.weight / (height_in_meters ** 2), 2)
         return None
 
-#profile
+
+# Profile model for storing user profile images
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='default.jpg', upload_to='profile_pics')
 
     def __str__(self):
         return f'{self.user.username} Profile'
-    
+
+
 # DietApp model for tracking user's diet-related information
 class DietApp(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
