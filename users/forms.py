@@ -8,14 +8,19 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import UserProfile, Profile, DietApp
+from .models import UserProfile, DietApp
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 
 class UserRegisterForm(UserCreationForm):
-    """Form for registering a new user."""
-    email = forms.EmailField()
+    """
+    Form for registering a new user with username, email, and password validation.
+    """
+    email = forms.EmailField(
+        required=True,
+        help_text="Required. Enter a valid email address."
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,6 +33,9 @@ class UserRegisterForm(UserCreationForm):
         fields = ['username', 'email', 'password1', 'password2']
 
     def clean_email(self):
+        """
+        Ensure the email is unique across all users.
+        """
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise ValidationError(_("A user with this email already exists."))
@@ -35,8 +43,13 @@ class UserRegisterForm(UserCreationForm):
 
 
 class UserLoginForm(AuthenticationForm):
-    """Form for logging in a user."""
-    username = forms.CharField(max_length=254, help_text="Enter your username or email.")
+    """
+    Form for logging in a user using username or email and password.
+    """
+    username = forms.CharField(
+        max_length=254,
+        help_text="Enter your username or email."
+    )
 
     class Meta:
         model = User
@@ -44,14 +57,22 @@ class UserLoginForm(AuthenticationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
-    """Form for updating a user's information."""
-    email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
+    """
+    Form for updating a user's information including unique email validation.
+    """
+    email = forms.EmailField(
+        required=True,
+        help_text="Required. Enter a valid email address."
+    )
 
     class Meta:
         model = User
         fields = ['username', 'email']
 
     def clean_email(self):
+        """
+        Ensure the updated email is unique across all users except the current one.
+        """
         email = self.cleaned_data.get('email')
         user_id = self.instance.id
         if User.objects.exclude(pk=user_id).filter(email=email).exists():
@@ -60,7 +81,9 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
-    """Form for updating additional user profile information."""
+    """
+    Form for updating additional user profile information.
+    """
     class Meta:
         model = UserProfile
         fields = ['image', 'age', 'height', 'weight', 'goal']
@@ -70,7 +93,9 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 class DietAppForm(forms.ModelForm):
-    """Form for managing DietApp data."""
+    """
+    Form for managing DietApp-related data including activity level, dietary preferences, etc.
+    """
     class Meta:
         model = DietApp
         fields = ['activity_level', 'dietary_preferences', 'food_allergies', 'goal']
@@ -82,10 +107,18 @@ class DietAppForm(forms.ModelForm):
 
 
 class CustomPasswordResetForm(PasswordResetForm):
-    """Form for resetting the user's password."""
-    email = forms.EmailField(max_length=254, help_text="Enter your email address to search for your account.")
+    """
+    Form for initiating a password reset using the user's email address.
+    """
+    email = forms.EmailField(
+        max_length=254,
+        help_text="Enter your email address to search for your account."
+    )
 
     def clean_email(self):
+        """
+        Ensure the email exists in the database.
+        """
         email = self.cleaned_data.get('email')
         if not User.objects.filter(email=email).exists():
             raise ValidationError(_("There is no user registered with the specified email address."))
@@ -93,7 +126,9 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 
 class CustomSetPasswordForm(SetPasswordForm):
-    """Form for setting a new password for a user."""
+    """
+    Form for setting a new password for the user during password reset.
+    """
     new_password1 = forms.CharField(
         label=_("New password"),
         widget=forms.PasswordInput(attrs={'class': 'form-control'}),
