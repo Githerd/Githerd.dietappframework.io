@@ -1,0 +1,101 @@
+{% extends "mealplanmaker/layout.html" %}
+
+{% block body %}
+<br>
+<h1 style="color: #003C5F; text-align: center;">Meal Planning and Weekly Workout</h1>
+<br>
+
+<!-- Meal Planning Section -->
+<div style="max-width: 800px; margin: auto;">
+    <h2 style="color: #007EC7; text-align: center;">Plan Your Meals for the Week</h2>
+    <br>
+    <form id="mealPlanForm">
+        <div class="form-group">
+            <label for="weeklyCalories" style="font-weight: bold;">Weekly Calories</label>
+            <input type="text" class="form-control" name="weeklyCalories" id="weeklyCalories" placeholder="Enter your weekly calorie goal" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="mealPlan" style="font-weight: bold;">Add Meals</label>
+            <textarea class="form-control" id="mealPlan" rows="5" placeholder="E.g., Breakfast: Oats and Banana\nLunch: Grilled Chicken and Salad\nDinner: Salmon and Veggies"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="shoppingList" style="font-weight: bold;">Generate Shopping List</label>
+            <textarea class="form-control" id="shoppingList" rows="5" placeholder="Generated shopping list will appear here..." readonly></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="generateShoppingList();">Generate Shopping List</button>
+    </form>
+</div>
+
+<br><hr><br>
+
+<!-- Workout Plan Section -->
+<div style="max-width: 800px; margin: auto;">
+    <h2 style="color: #007EC7; text-align: center;">Create a Workout Plan</h2>
+    <br>
+    <form id="workoutPlanForm">
+        <div class="form-group">
+            <label for="workoutGoal" style="font-weight: bold;">Workout Goal</label>
+            <select class="form-control" id="workoutGoal">
+                <option value="loseWeight">Lose Weight</option>
+                <option value="maintainWeight">Maintain Weight</option>
+                <option value="gainMuscle">Gain Muscle</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="workoutPlan" style="font-weight: bold;">Weekly Workout Plan</label>
+            <textarea class="form-control" id="workoutPlan" rows="5" placeholder="Generated workout plan will appear here..." readonly></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="generateWorkoutPlan();">Generate Workout Plan</button>
+    </form>
+</div>
+
+<br><br>
+
+<script>
+    // Calculate Weekly Calories Based on Daily Needs
+    function calculateWeeklyCalories() {
+        let dailyCalories = parseFloat(document.getElementById('calories_result').textContent || 0);
+        let weeklyCalories = dailyCalories * 7;
+        document.getElementById('weeklyCalories').value = weeklyCalories.toFixed(0);
+    }
+
+    // Generate Shopping List from Meal Plan
+    function generateShoppingList() {
+        let mealPlan = document.getElementById('mealPlan').value;
+        if (mealPlan.trim() === "") {
+            alert("Please add meals to your plan.");
+            return;
+        }
+
+        // Mock-up logic to extract ingredients (improve with backend support)
+        let ingredients = mealPlan.match(/\w+/g) || [];
+        let uniqueIngredients = [...new Set(ingredients)];
+        document.getElementById('shoppingList').value = uniqueIngredients.join(", ");
+    }
+
+    // Generate Workout Plan Based on Goal
+    function generateWorkoutPlan() {
+        let goal = document.getElementById('workoutGoal').value;
+        let workoutPlan = "";
+
+        if (goal === "loseWeight") {
+            workoutPlan = "Mon: Cardio 30 mins\nTue: Strength Training\nWed: Rest\nThu: Cardio 30 mins\nFri: Yoga\nSat: Full Body Workout\nSun: Rest";
+        } else if (goal === "maintainWeight") {
+            workoutPlan = "Mon: Light Cardio\nTue: Strength Training\nWed: Rest\nThu: Yoga\nFri: Light Cardio\nSat: Bodyweight Exercises\nSun: Rest";
+        } else if (goal === "gainMuscle") {
+            workoutPlan = "Mon: Upper Body Strength\nTue: Lower Body Strength\nWed: Rest\nThu: Full Body Workout\nFri: Upper Body Strength\nSat: Core Exercises\nSun: Rest";
+        }
+
+        document.getElementById('workoutPlan').value = workoutPlan;
+    }
+
+    // Run weekly calories calculation on load
+    document.addEventListener("DOMContentLoaded", calculateWeeklyCalories);
+</script>
+
+{% endblock %}
