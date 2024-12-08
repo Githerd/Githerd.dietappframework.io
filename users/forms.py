@@ -8,10 +8,15 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import UserProfile, DietApp, JournalEntry
+from .models import Meal, UserProfile, DietApp, JournalEntry
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
+
+class MealForm(forms.ModelForm):
+    class Meta:
+        model = Meal
+        fields = ['name', 'calories', 'date']
 
 
 class UserProfileForm(forms.ModelForm):
