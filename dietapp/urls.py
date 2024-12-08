@@ -11,7 +11,7 @@ from .views import (
 from . import views
 
 urlpatterns = [
-    # Meal views
+    # Meal-related views
     path('', MealListView.as_view(), name='dietapp-home'),  # Homepage listing meals
     path('meal/<int:pk>/', MealDetailView.as_view(), name='meal-detail'),  # Meal detail view
     path('meal/new/', MealCreateView.as_view(), name='meal-create'),  # Create a new meal
@@ -20,9 +20,4 @@ urlpatterns = [
     
     # TDEE and Weekly Calories Views
     path('tdee/', TDEEView.as_view(), name='tdee'),  # TDEE calculator view
-    path('weekly-calories/', WeeklyCaloriesView.as_view(), name='weekly-calories'),  # Weekly calories intake/burnt view
-    
-    # Additional static pages
-    path('about/', views.about, name='dietapp-about'),  # About page
-    path('contact/', views.contact, name='dietapp-contact'),  # Contact page
-]
+    path('weekly-calories/', WeeklyCaloriesView.as_view(), name='weekly-calories'),  # Weekly calories intake/burn view
