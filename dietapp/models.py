@@ -83,6 +83,16 @@ class HealthData(models.Model):
         return None
 
 
+class JournalEntry(models.Model):
+    title = models.CharField(max_length=200, verbose_name="Title")
+    content = models.TextField(verbose_name="Content")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
+    date_posted = models.DateTimeField(default=now, verbose_name="Date Posted")
+
+    def __str__(self):
+        return self.title
+
+
 class TDEE(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
     calories = models.PositiveIntegerField(default=0, verbose_name="Calories")
