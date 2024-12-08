@@ -29,6 +29,9 @@ class Meal(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     date = models.DateTimeField(auto_now_add=True, db_index=True)
 
+    class Meta:
+        ordering = ['-date']
+
     def __str__(self):
         return f"Meal: {self.name} by {self.user.username}"
 
@@ -48,6 +51,9 @@ class Exercise(models.Model):
     calories_burned = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Calories Burned")
     date = models.DateTimeField(auto_now_add=True, db_index=True)
 
+    class Meta:
+        ordering = ['-date']
+
     def __str__(self):
         return f"{self.name} ({self.calories_burned} kcal)"
 
@@ -60,6 +66,9 @@ class HealthData(models.Model):
     calories_intake = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories Intake")
     calories_burned = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories Burned")
     date = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-date']
 
     def __str__(self):
         return f"{self.user.username} - {self.weight} kg ({self.date})"
@@ -75,6 +84,9 @@ class TDEE(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
     calories = models.PositiveIntegerField(default=0, verbose_name="Calories")
     date = models.DateField(auto_now_add=True, blank=True, null=True, verbose_name="Date Recorded")
+
+    class Meta:
+        ordering = ['-date']
 
     def __str__(self):
         return f"TDEE for {self.user.username}: {self.calories} kcal"
@@ -92,10 +104,13 @@ class Weekly(models.Model):
     ]
     day = models.CharField(max_length=10, choices=DAYS_OF_WEEK, verbose_name="Day of the Week")
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="weekly_meals")
-    mealuser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_meals")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_meals")
+
+    class Meta:
+        ordering = ['day']
 
     def __str__(self):
-        return f"{self.meal.name} on {self.day} for {self.mealuser.username}"
+        return f"{self.meal.name} on {self.day} for {self.user.username}"
 
 
 class Message(models.Model):
@@ -103,6 +118,9 @@ class Message(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
     content = models.TextField(verbose_name="Message Content")
     timestamp = models.DateTimeField(default=now, db_index=True)
+
+    class Meta:
+        ordering = ['-timestamp']
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
