@@ -4,8 +4,9 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, UserProfileForm, MealForm
-from .models import Meal, UserProfile, Message
+from .models import Meal, UserProfile, Message, Exercise, TDEE
 from django.contrib.auth.models import User
+from django.views.generic import TemplateView
 
 
 # Basic Views
@@ -130,6 +131,32 @@ def submit_user_details(request):
         return redirect('dashboard')
     return render(request, 'dietapp/home.html')
     
+
+class TDEEView(TemplateView):
+    template_name = 'dietapp/tdee.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tdee = TDEE.objects.filter(user=self.request.user).first()
+        context['tdee'] = tdee.calories if tdee else 0
+        return context
+
+class WeeklyCaloriesView(TemplateView):
+    template_name = 'dietapp/weekly_calories.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        weekly_meals = Meal.objects.filter(user=user, date__week=timezone.now().isocalendar()[1])
+        weekly_exercises = Exercise.objects.filter(user=user, date__week=timezone.now().isocalendar()[1])
+        total_calories_intake = sum(meal.calories for meal in weekly_meals)
+        total_calories_burned = sum(exercise.calories_burned for exercise in weekly_exercises)
+        context.update({
+            'total_calories_intake': total_calories_intake,
+            'total_calories_burned': total_calories_burned,
+        })
+        return context
+
 
 def send_message(request):
     if request.method == "POST":
