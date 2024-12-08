@@ -1,0 +1,51 @@
+{% extends "dietapp/base.html" %}
+{% load crispy_forms_tags %} <!-- Load crispy forms -->
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>Login</h2>
+                </div>
+                <div class="card-body">
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Login</legend>
+                        {{ form|crispy }} {# We'll let the form render itself via the crispy filter #}
+                    </fieldset>
+                        {% csrf_token %}
+                        <!-- Display form fields with Bootstrap styling -->
+                        <div class="form-group mb-3">
+                            <label for="username">Username or Email</label>
+                            {{ form.username|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password">Password</label>
+                            {{ form.password|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            {{ form.remember_me|as_crispy_field }}
+                            <label for="remember_me">Remember Me</label>
+                        </div>
+                        <div class="form-group"> {# Adding the login button ourselves, rather than in the form #}
+                            <button class="btn btn-outline-info" type="submit">Login</button>
+                        <div class="text-center mt-2">
+                            <small>
+                                <a href="{% url 'password_reset' %}">Forgot your password?</a>
+                            </small>
+                        </div>
+                        <div class="border-top pt-3">
+                            <small class="text-muted">
+                                Need An Account? <a class="ml-2" href="#">Sign Up Now</a>
+                            </small>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small>Don't have an account? <a href="{% url 'register' %}">Sign up here</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "dietapp/base.html" %}
+{% load crispy_forms_tags %} <!-- Load crispy forms -->
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>My Profile</h2>
+                </div>
+                <div class="card-body">
+                    <div class="media">
+                        <img class="rounded-circle account-img" src="{{ user.profile.image.url }}" alt="Profile Image">
+                        <div class="media-body">
+                            <h2 class="account-heading">{{ user.username }}</h2>
+                            <p class="text-secondary">{{ user.email }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        <!-- User Information Section -->
+                        <h4 class="mb-3">User Information</h4>
+                        <div class="form-group mb-3">
+                            <label for="username">Username</label>
+                            {{ user_form.username|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="email">Email Address</label>
+                            {{ user_form.email|as_crispy_field }}
+                        </div>
+                        <hr>
+                        <!-- Profile Details Section -->
+                        <h4 class="mb-3">Profile Details</h4>
+                        <div class="form-group mb-3">
+                            <label for="age">Age</label>
+                            {{ profile_form.age|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="height">Height (cm)</label>
+                            {{ profile_form.height|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="weight">Weight (kg)</label>
+                            {{ profile_form.weight|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="sex">Sex</label>
+                            {{ profile_form.sex|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="activity_level">Activity Level</label>
+                            {{ profile_form.activity_level|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="dietary_preferences">Dietary Preferences</label>
+                            {{ profile_form.dietary_preferences|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="food_allergies">Food Allergies (if any)</label>
+                            {{ profile_form.food_allergies|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="medical_conditions">Medical Conditions</label>
+                            {{ profile_form.medical_conditions|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="goal">Goal</label>
+                            {{ profile_form.goal|as_crispy_field }}
+                        </div>
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small><a href="{% url 'change_password' %}">Change Password</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
