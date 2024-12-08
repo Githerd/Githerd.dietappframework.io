@@ -72,7 +72,7 @@ WSGI_APPLICATION = 'diet_tracker.wsgi.application'
 # Database configuration
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
         ssl_require=not DEBUG
     )
