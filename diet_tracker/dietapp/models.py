@@ -64,3 +64,30 @@ class HealthData(models.Model):
         if self.height > 0:
             return self.weight / (self.height / 100) ** 2
         return None
+
+
+class TDEE(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
+    calories = models.PositiveIntegerField(default=0)
+    date = models.DateField(auto_now_add=True)  # Optional: track when TDEE was recorded
+
+    def __str__(self):
+        return f"{self.user.username} - {self.calories} kcal"
+
+
+class Weekly(models.Model):
+    DAYS_OF_WEEK = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    ]
+    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="weekly_meals")
+    mealuser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_meals")
+
+    def __str__(self):
+        return f"{self.meal.name} on {self.day} for {self.mealuser.username}"
