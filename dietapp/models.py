@@ -1,11 +1,10 @@
 from django.db import models
-from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.utils.timezone import now
+from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator
-from django.utils.timezone import now
 
-User = get_user_model()
+User = settings.AUTH_USER_MODEL
 
 
 class UserProfile(models.Model):
@@ -39,14 +38,16 @@ class Meal(models.Model):
         return reverse('meal-detail', kwargs={'pk': self.pk})
 
 
+EXERCISE_TYPE_CHOICES = [
+    ('cardio', 'Cardio'),
+    ('strength', 'Strength'),
+]
+
+
 class Exercise(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
     name = models.CharField(max_length=100, verbose_name="Exercise Name")
-    type = models.CharField(
-        max_length=50,
-        choices=[('cardio', 'Cardio'), ('strength', 'Strength')],
-        verbose_name="Exercise Type"
-    )
+    type = models.CharField(max_length=50, choices=EXERCISE_TYPE_CHOICES, verbose_name="Exercise Type")
     duration = models.IntegerField(validators=[MinValueValidator(0)], help_text="Duration in minutes")
     calories_burned = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Calories Burned")
     date = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -83,7 +84,7 @@ class HealthData(models.Model):
 class TDEE(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
     calories = models.PositiveIntegerField(default=0, verbose_name="Calories")
-    date = models.DateField(auto_now_add=True, blank=True, null=True, verbose_name="Date Recorded")
+    date = models.DateField(auto_now_add=True, verbose_name="Date Recorded")
 
     class Meta:
         ordering = ['-date']
@@ -104,7 +105,7 @@ class Weekly(models.Model):
     ]
     day = models.CharField(max_length=10, choices=DAYS_OF_WEEK, verbose_name="Day of the Week")
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="weekly_meals")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_meals")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_entries")
 
     class Meta:
         ordering = ['day']
