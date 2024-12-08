@@ -15,8 +15,8 @@ urlpatterns = [
     path('', MealListView.as_view(), name='dietapp-home'),  # Homepage listing meals
     path('meal/<int:pk>/', MealDetailView.as_view(), name='meal-detail'),  # Meal detail view
     path('meal/new/', MealCreateView.as_view(), name='meal-create'),  # Create a new meal
-    path('meal/<int:pk>/update/', MealUpdateView.as_view(), name='meal-update'),  # Update a meal
-    path('meal/<int:pk>/delete/', MealDeleteView.as_view(), name='meal-delete'),  # Delete a meal
+    path('journal/<int:pk>/update/', views.journal_update, name='journal-update'),
+    path('journal/<int:pk>/delete/', views.journal_delete, name='journal-delete'),
     
     # TDEE and Weekly Calories Views
     path('tdee/', TDEEView.as_view(), name='tdee'),  # TDEE calculator view
