@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserProfileForm, MealForm
 from .models import Meal, UserProfile, Message
 from django.contrib.auth.models import User
+from path.to.correct.module import UserProfileForm
 
 
 # Basic Views
