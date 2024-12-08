@@ -3,43 +3,37 @@ from django.http import HttpResponse
 from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm, UserProfileForm, MealForm
-from .models import Meal
-from .models import UserProfile
-from .models import Message
+from .forms import UserRegisterForm, UserProfileForm, MealForm
+from .models import Meal, UserProfile, Message
 from django.contrib.auth.models import User
 
 
 # Basic Views
 
 def home(request):
-    """
-    Renders the home page.
-    """
+    """Renders the home page."""
     return HttpResponse('<h1>DietApp Home</h1>')
 
 
 def about(request):
-    """
-    Renders the about page.
-    """
+    """Renders the about page."""
     return HttpResponse('<h1>About DietApp</h1>')
 
 
 def contact(request):
-    """
-    Renders the contact page.
-    """
+    """Renders the contact page."""
     return HttpResponse('<h1>Contact DietApp</h1>')
 
 
 # User Management
 
 def register(request):
+    """Handles user registration."""
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Registration successful! Please log in.')
             return redirect('login')
     else:
         form = UserRegisterForm()
@@ -50,17 +44,16 @@ def register(request):
 
 @login_required
 def dashboard(request):
+    """Displays the user's dashboard."""
     user_profile = UserProfile.objects.get(user=request.user)
-    return render(request, 'dietapp/dashboard.html', {'user': user_profile})
+    return render(request, 'dietapp/dashboard.html', {'user_profile': user_profile})
 
 
 # Meal Management
 
 @login_required
 def log_meal(request):
-    """
-    Allows the user to log a new meal.
-    """
+    """Allows the user to log a new meal."""
     if request.method == 'POST':
         form = MealForm(request.POST)
         if form.is_valid():
@@ -71,34 +64,33 @@ def log_meal(request):
             return redirect('dashboard')
     else:
         form = MealForm()
-    
     return render(request, 'dietapp/meal_form.html', {'form': form})
 
 
 @login_required
 def meal_detail(request, meal_id):
-    """
-    Displays the details of a specific meal.
-    """
+    """Displays the details of a specific meal."""
     meal = get_object_or_404(Meal, id=meal_id, user=request.user)
-    return render(request, 'dietapp/meal_detail.html', {'object': meal})
+    return render(request, 'dietapp/meal_detail.html', {'meal': meal})
 
 
 @login_required
 def delete_meal(request, meal_id):
-    """
-    Handles the deletion of a specific meal.
-    """
+    """Handles the deletion of a specific meal."""
     meal = get_object_or_404(Meal, id=meal_id, user=request.user)
     if request.method == 'POST':
         meal.delete()
         messages.success(request, 'Meal deleted successfully.')
         return redirect('dashboard')
-    return render(request, 'dietapp/meal_confirm_delete.html', {'object': meal})
+    return render(request, 'dietapp/meal_confirm_delete.html', {'meal': meal})
 
 
+# User Details Submission
+
+@login_required
 def submit_user_details(request):
-    if request.method == "POST":
+    """Allows users to submit or update profile details."""
+    if request.method == 'POST':
         name = request.POST['name']
         age = request.POST['age']
         height = request.POST['height']
@@ -107,40 +99,51 @@ def submit_user_details(request):
         calories_consumed = request.POST['calories_consumed']
         calories_burned = request.POST['calories_burned']
 
-        user_profile = UserProfile(
+        user_profile, created = UserProfile.objects.update_or_create(
             user=request.user,
-            name=name,
-            age=age,
-            height=height,
-            weight=weight,
-            meals=meals,
-            calories_consumed=calories_consumed,
-            calories_burned=calories_burned,
+            defaults={
+                'name': name,
+                'age': age,
+                'height': height,
+                'weight': weight,
+                'meals': meals,
+                'calories_consumed': calories_consumed,
+                'calories_burned': calories_burned,
+            }
         )
-        user_profile.save()
+        messages.success(request, 'User details updated successfully!')
         return redirect('dashboard')
-    return render(request, 'dietapp/home.html')
-    
+    return render(request, 'dietapp/user_details_form.html')
 
+
+# Messaging System
+
+@login_required
 def send_message(request):
-    if request.method == "POST":
+    """Allows users to send messages to other users."""
+    if request.method == 'POST':
         receiver_username = request.POST['receiver']
         content = request.POST['content']
         try:
             receiver = User.objects.get(username=receiver_username)
-            message = Message(sender=request.user, receiver=receiver, content=content)
-            message.save()
-            return redirect('inbox')  # Redirect to inbox after sending
+            Message.objects.create(sender=request.user, receiver=receiver, content=content)
+            messages.success(request, 'Message sent successfully!')
+            return redirect('inbox')
         except User.DoesNotExist:
-            return render(request, 'messaging/send_message.html', {'error': 'User not found'})
+            messages.error(request, 'User not found.')
+            return redirect('send-message')
     return render(request, 'messaging/send_message.html')
 
 
+@login_required
 def inbox(request):
-    messages = Message.objects.filter(receiver=request.user).order_by('-timestamp')
-    return render(request, 'messaging/inbox.html', {'messages': messages})
+    """Displays messages received by the user."""
+    received_messages = Message.objects.filter(receiver=request.user).order_by('-timestamp')
+    return render(request, 'messaging/inbox.html', {'messages': received_messages})
 
 
+@login_required
 def sent_messages(request):
-    messages = Message.objects.filter(sender=request.user).order_by('-timestamp')
-    return render(request, 'messaging/sent_messages.html', {'messages': messages})
+    """Displays messages sent by the user."""
+    sent_messages = Message.objects.filter(sender=request.user).order_by('-timestamp')
+    return render(request, 'messaging/sent_messages.html', {'messages': sent_messages})
