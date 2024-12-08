@@ -7,6 +7,10 @@ from .forms import RegisterForm, UserProfileForm, MealForm
 from .models import Meal, UserProfile, Message, Exercise, TDEE
 from django.contrib.auth.models import User
 from django.views.generic import TemplateView
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import JournalEntryForm
+from .models import JournalEntry
 
 
 # Basic Views
@@ -67,44 +71,37 @@ def dashboard(request):
 # Meal Management
 
 @login_required
-def log_meal(request):
-    """
-    Allows the user to log a new meal.
-    """
+def journal_create(request):
     if request.method == 'POST':
-        form = MealForm(request.POST)
+        form = JournalEntryForm(request.POST)
         if form.is_valid():
-            meal = form.save(commit=False)
-            meal.user = request.user
-            meal.save()
-            messages.success(request, 'Meal logged successfully!')
-            return redirect('dashboard')
+            entry = form.save(commit=False)
+            entry.author = request.user
+            entry.save()
+            return redirect('journal-list')
     else:
-        form = MealForm()
-    
-    return render(request, 'dietapp/meal_form.html', {'form': form})
-
+        form = JournalEntryForm()
+    return render(request, 'journal_entry_form.html', {'form': form})
 
 @login_required
-def meal_detail(request, meal_id):
-    """
-    Displays the details of a specific meal.
-    """
-    meal = get_object_or_404(Meal, id=meal_id, user=request.user)
-    return render(request, 'dietapp/meal_detail.html', {'object': meal})
-
-
-@login_required
-def delete_meal(request, meal_id):
-    """
-    Handles the deletion of a specific meal.
-    """
-    meal = get_object_or_404(Meal, id=meal_id, user=request.user)
+def journal_update(request, pk):
+    journal = get_object_or_404(JournalEntry, pk=pk, author=request.user)
     if request.method == 'POST':
-        meal.delete()
-        messages.success(request, 'Meal deleted successfully.')
-        return redirect('dashboard')
-    return render(request, 'dietapp/meal_confirm_delete.html', {'object': meal})
+        form = JournalEntryForm(request.POST, instance=journal)
+        if form.is_valid():
+            form.save()
+            return redirect('journal-detail', pk=journal.pk)
+    else:
+        form = JournalEntryForm(instance=journal)
+    return render(request, 'journal_entry_form.html', {'form': form})
+
+@login_required
+def journal_delete(request, pk):
+    journal = get_object_or_404(JournalEntry, pk=pk, author=request.user)
+    if request.method == 'POST':
+        journal.delete()
+        return redirect('journal-list')
+    return render(request, 'journal_confirm_delete.html', {'object': journal})
 
 
 def submit_user_details(request):
