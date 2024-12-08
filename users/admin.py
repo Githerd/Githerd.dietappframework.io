@@ -1,34 +1,23 @@
 from django.contrib import admin
-from .models import User, UserProfile, Profile, DietApp
+from .models import User, UserProfile, Profile
 
 
-# Register the custom User model
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'email', 'date_joined']
+    list_display = ['username', 'email', 'is_staff', 'date_joined']
     search_fields = ['username', 'email']
-    list_filter = ['date_joined', 'is_active']
+    list_filter = ['is_staff', 'is_active', 'date_joined']
     ordering = ['-date_joined']
 
 
-# Register the UserProfile model
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'age', 'height', 'weight']
-    search_fields = ['user__username']
-    list_filter = ['age']
+    list_display = ['user', 'age', 'height', 'weight', 'goal']
+    search_fields = ['user__username', 'goal']
+    list_filter = ['age', 'goal']
 
 
-# Register the Profile model
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'image']
     search_fields = ['user__username']
-
-
-# Register the DietApp model
-@admin.register(DietApp)
-class DietAppAdmin(admin.ModelAdmin):
-    list_display = ['user', 'activity_level', 'goal', 'created_at']
-    list_filter = ['activity_level', 'goal']
-    search_fields = ['user__username', 'goal']
