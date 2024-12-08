@@ -1,0 +1,26 @@
+{% extends "dietapp/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center" style="color: #003C5F;">Create a Journal Entry</h1>
+    <p class="text-center lead">Share your thoughts about your daily or weekly activities.</p>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="content-section p-4 border rounded" style="background-color: #f8f9fa;">
+                <form method="POST">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">New Journal Entry</legend>
+                        {{ form|crispy }}
+                    </fieldset>
+                    <div class="form-group text-center">
+                        <button class="btn btn-primary" type="submit">Save Entry</button>
+                        <a href="{% url 'journal-list' %}" class="btn btn-outline-secondary ml-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
