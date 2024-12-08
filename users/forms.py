@@ -8,9 +8,10 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import UserProfile, DietApp
+from .models import UserProfile, DietApp, JournalEntry
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
+
 
 
 class UserProfileForm(forms.ModelForm):
@@ -110,6 +111,16 @@ class DietAppForm(forms.ModelForm):
             'dietary_preferences': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
             'food_allergies': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
             'goal': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class JournalEntryForm(forms.ModelForm):
+    class Meta:
+        model = JournalEntry
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter a title'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 8, 'placeholder': 'Write your thoughts...'}),
         }
 
 
