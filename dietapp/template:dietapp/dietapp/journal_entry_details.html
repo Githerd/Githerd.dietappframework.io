@@ -1,0 +1,26 @@
+{% extends "dietapp/base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <article class="media content-section">
+        <div class="media-body">
+            <div class="article-metadata">
+                <h1 class="article-title text-center" style="color: #003C5F;">{{ object.title }}</h1>
+                <p class="text-center text-muted">By <a href="#">{{ object.author }}</a> on {{ object.date_posted }}</p>
+                {% if object.author == user %}
+                <div class="text-center mt-3">
+                    <a class="btn btn-secondary btn-sm" href="{% url 'journal-update' object.id %}">Update</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'journal-delete' object.id %}">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+            <hr>
+            <div class="content-section mt-4">
+                <p class="text-justify" style="font-size: 16px; line-height: 1.6;">{{ object.content }}</p>
+            </div>
+        </div>
+    </article>
+    <div class="text-center mt-4">
+        <a class="btn btn-outline-primary" href="{% url 'journal-list' %}">Back to Journal Entries</a>
+    </div>
+</div>
+{% endblock content %}
