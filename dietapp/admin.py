@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import UserProfile, Meal, Exercise, HealthData, TDEE, Weekly, Message
+from .models import User, UserProfile, Profile, DietApp, Exercise, HealthData, TDEE, Weekly, Message, JournalEntry
+from dietapp.models import Meal  
 
 admin.site.register(UserProfile)
 admin.site.register(Meal)
