@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth import get_user_model, UserProfile
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.validators import MinValueValidator
 from django.utils.timezone import now
@@ -10,27 +10,27 @@ User = get_user_model()
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    age = models.IntegerField(validators=[MinValueValidator(0)])
-    weight = models.FloatField(validators=[MinValueValidator(0)])
-    height = models.FloatField(validators=[MinValueValidator(0)])
-    dietary_preferences = models.TextField(blank=True, null=True)
+    age = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="Age")
+    weight = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Weight (kg)")
+    height = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Height (cm)")
+    dietary_preferences = models.TextField(blank=True, null=True, verbose_name="Dietary Preferences")
 
     def __str__(self):
-        return self.user.username
+        return f"Profile of {self.user.username}"
 
 
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals")
-    name = models.CharField(max_length=100)
-    calories = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    description = models.TextField(blank=True, null=True)
-    date = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100, verbose_name="Meal Name")
+    calories = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories")
+    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Protein (g)")
+    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Carbs (g)")
+    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Fat (g)")
+    description = models.TextField(blank=True, null=True, verbose_name="Description")
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
-        return self.name
+        return f"Meal: {self.name} by {self.user.username}"
 
     def get_absolute_url(self):
         return reverse('meal-detail', kwargs={'pk': self.pk})
@@ -38,11 +38,15 @@ class Meal(models.Model):
 
 class Exercise(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
-    name = models.CharField(max_length=100)
-    type = models.CharField(max_length=50, choices=[('cardio', 'Cardio'), ('strength', 'Strength')])
+    name = models.CharField(max_length=100, verbose_name="Exercise Name")
+    type = models.CharField(
+        max_length=50,
+        choices=[('cardio', 'Cardio'), ('strength', 'Strength')],
+        verbose_name="Exercise Type"
+    )
     duration = models.IntegerField(validators=[MinValueValidator(0)], help_text="Duration in minutes")
-    calories_burned = models.FloatField(validators=[MinValueValidator(0)])
-    date = models.DateTimeField(auto_now_add=True)
+    calories_burned = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Calories Burned")
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.name} ({self.calories_burned} kcal)"
@@ -50,12 +54,12 @@ class Exercise(models.Model):
 
 class HealthData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="health_data")
-    weight = models.FloatField(validators=[MinValueValidator(0)])
-    height = models.FloatField(validators=[MinValueValidator(0)])
-    age = models.IntegerField(validators=[MinValueValidator(0)])
-    calories_intake = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    calories_burned = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    date = models.DateTimeField(auto_now_add=True)
+    weight = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Weight (kg)")
+    height = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Height (cm)")
+    age = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="Age")
+    calories_intake = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories Intake")
+    calories_burned = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories Burned")
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.weight} kg ({self.date})"
@@ -63,17 +67,17 @@ class HealthData(models.Model):
     @property
     def bmi(self):
         if self.height > 0:
-            return self.weight / (self.height / 100) ** 2
+            return round(self.weight / (self.height / 100) ** 2, 2)
         return None
 
 
 class TDEE(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
-    calories = models.PositiveIntegerField(default=0)
-    date = models.DateField(auto_now_add=True)  # Optional: track when TDEE was recorded
+    calories = models.PositiveIntegerField(default=0, verbose_name="Calories")
+    date = models.DateField(auto_now_add=True, blank=True, null=True, verbose_name="Date Recorded")
 
     def __str__(self):
-        return f"{self.user.username} - {self.calories} kcal"
+        return f"TDEE for {self.user.username}: {self.calories} kcal"
 
 
 class Weekly(models.Model):
@@ -86,7 +90,7 @@ class Weekly(models.Model):
         ('Saturday', 'Saturday'),
         ('Sunday', 'Sunday'),
     ]
-    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
+    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK, verbose_name="Day of the Week")
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="weekly_meals")
     mealuser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_meals")
 
@@ -97,9 +101,8 @@ class Weekly(models.Model):
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    content = models.TextField()
-    timestamp = models.DateTimeField(default=now)
+    content = models.TextField(verbose_name="Message Content")
+    timestamp = models.DateTimeField(default=now, db_index=True)
 
     def __str__(self):
-        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}" 
-
+        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
