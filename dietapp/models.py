@@ -3,8 +3,20 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator
+from django.contrib.auth import get_user_model
 
-User = settings.AUTH_USER_MODEL
+
+User = get_user_model()
+
+
+class JournalEntry(models.Model):
+    title = models.CharField(max_length=200, verbose_name="Title")
+    content = models.TextField(verbose_name="Content")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
+    date_posted = models.DateTimeField(default=now, verbose_name="Date Posted")
+
+    def __str__(self):
+        return self.title
 
 
 class UserProfile(models.Model):
