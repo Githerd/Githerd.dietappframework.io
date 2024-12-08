@@ -8,6 +8,12 @@ from django.dispatch import receiver
 from django.core.validators import FileExtensionValidator
 
 
+# Utility function for dynamic file paths
+def user_directory_path(instance, filename):
+    # File will be uploaded to MEDIA_ROOT/profile_pics/<username>/<filename>
+    return f'profile_pics/{instance.user.username}/{filename}'
+
+
 # Custom User model extending AbstractUser
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -17,26 +23,12 @@ class User(AbstractUser):
         return self.username
 
 
-# Signal to create and save UserProfile and Profile automatically
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-        Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.userprofile.save()
-    instance.profile.save()
-
-
 # UserProfile model to store additional user information
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     image = models.ImageField(
         default='default.jpg',
-        upload_to='profile_pics',
+        upload_to=user_directory_path,
         validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])]
     )
     age = models.PositiveIntegerField(null=True, blank=True)
@@ -53,6 +45,7 @@ class UserProfile(models.Model):
     )
 
     def clean(self):
+        """Custom validation for age, height, and weight."""
         if self.age and (self.age <= 0 or self.age > 150):
             raise ValidationError("Age must be between 1 and 150.")
         if self.height and self.height <= 0:
@@ -75,20 +68,37 @@ class UserProfile(models.Model):
 # Profile model for storing user profile images
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile_image")
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
+    image = models.ImageField(default='default.jpg', upload_to=user_directory_path)
 
     def __str__(self):
         return f'{self.user.username} Profile Image'
 
     def save(self, *args, **kwargs):
+        """Resize the image to reduce file size and maintain uniformity."""
         super().save(*args, **kwargs)
 
-        img = Image.open(self.image.path)
+        try:
+            img = Image.open(self.image.path)
 
-        if img.height > 300 or img.width > 300:
-            output_size = (300, 300)
-            img.thumbnail(output_size)
-            img.save(self.image.path)
+            if img.height > 300 or img.width > 300:
+                output_size = (300, 300)
+                img.thumbnail(output_size)
+                img.save(self.image.path)
+        except Exception as e:
+            # Log the error or handle it as per your requirements
+            pass
+
+
+# Signal to create UserProfile and Profile automatically
+@receiver(post_save, sender=User)
+def create_and_save_user_profiles(sender, instance, created, **kwargs):
+    """Create and save UserProfile and Profile when a new User is created."""
+    if created:
+        UserProfile.objects.create(user=instance)
+        Profile.objects.create(user=instance)
+    else:
+        instance.profile.save()
+        instance.profile_image.save()
 
 
 # DietApp model for tracking user's diet-related information
