@@ -3,45 +3,30 @@ from django.http import HttpResponse
 from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm, UserProfileForm, MealForm
-from .models import Meal, UserProfile, Message, Exercise, TDEE
+from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm
+from .models import Meal, UserProfile, Message, Exercise, TDEE, JournalEntry
 from django.contrib.auth.models import User
-from django.views.generic import TemplateView
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import JournalEntryForm
-from .models import JournalEntry
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.utils import timezone
 
 
 # Basic Views
-
 def home(request):
-    """
-    Renders the home page.
-    """
-    return HttpResponse('<h1>DietApp Home</h1>')
+    return render(request, 'dietapp/home.html')
 
 
 def about(request):
-    """
-    Renders the about page.
-    """
-    return HttpResponse('<h1>About DietApp</h1>')
+    return render(request, 'dietapp/about.html')
 
 
 def contact(request):
-    """
-    Renders the contact page.
-    """
-    return HttpResponse('<h1>Contact DietApp</h1>')
+    return render(request, 'dietapp/contact.html')
 
 
 # User Management
-
 def register(request):
-    """
-    Handles user registration and profile creation.
-    """
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         profile_form = UserProfileForm(request.POST)
@@ -56,11 +41,8 @@ def register(request):
     else:
         form = RegisterForm()
         profile_form = UserProfileForm()
-    
     return render(request, 'dietapp/register.html', {'form': form, 'profile_form': profile_form})
 
-
-# Dashboard
 
 @login_required
 def dashboard(request):
@@ -68,67 +50,79 @@ def dashboard(request):
     return render(request, 'dietapp/dashboard.html', {'user': user_profile})
 
 
-# Meal Management
+# Journal Management
+class JournalListView(LoginRequiredMixin, ListView):
+    model = JournalEntry
+    template_name = 'dietapp/journal_list.html'
+    context_object_name = 'journals'
 
+
+class JournalDetailView(LoginRequiredMixin, DetailView):
+    model = JournalEntry
+    template_name = 'dietapp/journal_detail.html'
+
+
+class JournalCreateView(LoginRequiredMixin, CreateView):
+    model = JournalEntry
+    form_class = JournalEntryForm
+    template_name = 'dietapp/journal_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+
+class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = JournalEntry
+    form_class = JournalEntryForm
+    template_name = 'dietapp/journal_form.html'
+
+    def test_func(self):
+        return self.request.user == self.get_object().author
+
+
+class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = JournalEntry
+    template_name = 'dietapp/journal_confirm_delete.html'
+    success_url = reverse_lazy('journal-list')
+
+    def test_func(self):
+        return self.request.user == self.get_object().author
+
+
+# Messages
 @login_required
-def journal_create(request):
-    if request.method == 'POST':
-        form = JournalEntryForm(request.POST)
-        if form.is_valid():
-            entry = form.save(commit=False)
-            entry.author = request.user
-            entry.save()
-            return redirect('journal-list')
-    else:
-        form = JournalEntryForm()
-    return render(request, 'journal_entry_form.html', {'form': form})
-
-@login_required
-def journal_update(request, pk):
-    journal = get_object_or_404(JournalEntry, pk=pk, author=request.user)
-    if request.method == 'POST':
-        form = JournalEntryForm(request.POST, instance=journal)
-        if form.is_valid():
-            form.save()
-            return redirect('journal-detail', pk=journal.pk)
-    else:
-        form = JournalEntryForm(instance=journal)
-    return render(request, 'journal_entry_form.html', {'form': form})
-
-@login_required
-def journal_delete(request, pk):
-    journal = get_object_or_404(JournalEntry, pk=pk, author=request.user)
-    if request.method == 'POST':
-        journal.delete()
-        return redirect('journal-list')
-    return render(request, 'journal_confirm_delete.html', {'object': journal})
-
-
-def submit_user_details(request):
+def send_message(request):
     if request.method == "POST":
-        name = request.POST['name']
-        age = request.POST['age']
-        height = request.POST['height']
-        weight = request.POST['weight']
-        meals = request.POST['meals']
-        calories_consumed = request.POST['calories_consumed']
-        calories_burned = request.POST['calories_burned']
+        receiver_username = request.POST.get('receiver')
+        content = request.POST.get('content')
+        if not receiver_username or not content:
+            messages.error(request, "Both receiver and message content are required.")
+            return redirect('send-message')
 
-        user_profile = UserProfile(
-            user=request.user,
-            name=name,
-            age=age,
-            height=height,
-            weight=weight,
-            meals=meals,
-            calories_consumed=calories_consumed,
-            calories_burned=calories_burned,
-        )
-        user_profile.save()
-        return redirect('dashboard')
-    return render(request, 'dietapp/home.html')
-    
+        try:
+            receiver = User.objects.get(username=receiver_username)
+            Message.objects.create(sender=request.user, receiver=receiver, content=content)
+            messages.success(request, "Message sent successfully!")
+            return redirect('inbox')
+        except User.DoesNotExist:
+            messages.error(request, "User does not exist.")
+    return render(request, 'messaging/send_message.html')
 
+
+@login_required
+def inbox(request):
+    messages = Message.objects.filter(receiver=request.user).order_by('-timestamp')
+    return render(request, 'messaging/inbox.html', {'messages': messages})
+
+
+@login_required
+def sent_messages(request):
+    messages = Message.objects.filter(sender=request.user).order_by('-timestamp')
+    return render(request, 'messaging/sent_messages.html', {'messages': messages})
+
+
+# TDEE & Weekly Calories
 class TDEEView(TemplateView):
     template_name = 'dietapp/tdee.html'
 
@@ -138,42 +132,14 @@ class TDEEView(TemplateView):
         context['tdee'] = tdee.calories if tdee else 0
         return context
 
+
 class WeeklyCaloriesView(TemplateView):
     template_name = 'dietapp/weekly_calories.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
-        weekly_meals = Meal.objects.filter(user=user, date__week=timezone.now().isocalendar()[1])
-        weekly_exercises = Exercise.objects.filter(user=user, date__week=timezone.now().isocalendar()[1])
-        total_calories_intake = sum(meal.calories for meal in weekly_meals)
-        total_calories_burned = sum(exercise.calories_burned for exercise in weekly_exercises)
-        context.update({
-            'total_calories_intake': total_calories_intake,
-            'total_calories_burned': total_calories_burned,
-        })
+        weekly_meals = Meal.objects.filter(user=self.request.user, date__week=timezone.now().isocalendar()[1])
+        weekly_exercises = Exercise.objects.filter(user=self.request.user, date__week=timezone.now().isocalendar()[1])
+        context['total_calories_intake'] = sum(meal.calories for meal in weekly_meals)
+        context['total_calories_burned'] = sum(exercise.calories_burned for exercise in weekly_exercises)
         return context
-
-
-def send_message(request):
-    if request.method == "POST":
-        receiver_username = request.POST['receiver']
-        content = request.POST['content']
-        try:
-            receiver = User.objects.get(username=receiver_username)
-            message = Message(sender=request.user, receiver=receiver, content=content)
-            message.save()
-            return redirect('inbox')  # Redirect to inbox after sending
-        except User.DoesNotExist:
-            return render(request, 'messaging/send_message.html', {'error': 'User not found'})
-    return render(request, 'messaging/send_message.html')
-
-
-def inbox(request):
-    messages = Message.objects.filter(receiver=request.user).order_by('-timestamp')
-    return render(request, 'messaging/inbox.html', {'messages': messages})
-
-
-def sent_messages(request):
-    messages = Message.objects.filter(sender=request.user).order_by('-timestamp')
-    return render(request, 'messaging/sent_messages.html', {'messages': messages})
