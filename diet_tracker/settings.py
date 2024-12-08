@@ -25,7 +25,6 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # Application definition
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
-    'blog.apps.BlogConfig',  # Only include if the blog app exists
     'users.apps.UsersConfig',
     'dietapp.apps.DietappConfig',
     'crispy_forms',
