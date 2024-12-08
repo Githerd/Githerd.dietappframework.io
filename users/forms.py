@@ -13,6 +13,13 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 
+class UserProfileForm(forms.ModelForm):
+    """Form for updating user profile details."""
+    class Meta:
+        model = UserProfile
+        fields = ['image', 'age', 'height', 'weight', 'goal']
+
+
 class UserRegisterForm(UserCreationForm):
     """
     Form for registering a new user with username, email, and password validation.
