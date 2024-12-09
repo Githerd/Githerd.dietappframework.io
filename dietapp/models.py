@@ -80,6 +80,17 @@ class Meal(models.Model):
         return reverse('meal-detail', kwargs={'pk': self.pk})
 
 
+class Carbs(models.Model):
+    name = models.TextField(max_length=50)
+    gfat = models.PositiveIntegerField(default=0)
+    gcarb = models.PositiveIntegerField(default=0)
+    gprotein = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+
+
 # Vitamins for Meals
 class Vitamin(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
