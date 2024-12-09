@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from .models import User, Meals, Weekly, JournalEntry, TDEE, Message, UserProfile
+from .models import User, Meal, Weekly, JournalEntry, TDEE, Message, UserProfile
 from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm
 
 
