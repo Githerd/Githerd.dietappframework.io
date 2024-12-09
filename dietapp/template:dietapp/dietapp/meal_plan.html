@@ -72,23 +72,5 @@ TDEE Calculator and User Details | DietApp
         </div>
     </div>
 </div>
-
-<script>
-function calculateCalories() {
-    setTimeout(() => {
-        const form = document.forms["tdeeform"];
-
-        const gender_value = form.elements["gender"][0].checked ? 5 : -161;
-        const activitylevel_value = [1.2, 1.375, 1.55, 1.725, 1.9][form.elements["activitylevel"].value - 1];
-        const weight = parseFloat(form.elements["weight"].value) || 0;
-        const height = parseFloat(form.elements["height"].value) || 0;
-        const age = parseInt(form.elements["age"].value) || 0;
-
-        let calories_result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activitylevel_value;
-        calories_result = Math.max(0, calories_result); // Ensure calories are non-negative
-
-        document.getElementById('calories_result').innerText = calories_result.toFixed(0);
-    }, 1);
-}
-</script>
+<script src="calculateCalories.js"></script>
 {% endblock %} 
