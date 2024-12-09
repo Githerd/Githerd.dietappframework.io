@@ -1,6 +1,16 @@
 {% extends "dietapp/base.html" %}
 {% block content %}
 <h2>About DietApp</h2>
-<p>DietApp helps you track your meals, analyze nutritional data, and achieve your health goals.</p>
-<a href="{% url 'add_health' %}">Add Health Data</a>
+<div class="container mt-4">
+    <h1 class="text-center">Welcome to DietApp</h1>
+  <p>DietApp helps you track your meals, analyze nutritional data, and achieve your health goals.</p>
+    <div class="text-center">
+        <a href="{% url 'dietapp-home' %}" class="btn btn-primary mx-2">Home</a>
+        <a href="{% url 'dietapp-about' %}" class="btn btn-secondary mx-2">About</a>
+        <a href="{% url 'dietapp-contact' %}" class="btn btn-success mx-2">Contact</a>
+        <a href="{% url 'tdee' %}" class="btn btn-info mx-2">TDEE Calculator</a>
+        <a href="{% url 'weekly-calories' %}" class="btn btn-warning mx-2">Weekly Plan</a>
+        <a href="{% url 'journal-create' %}" class="btn btn-dark mx-2">Create Journal</a>
+    </div>
+</div>
 {% endblock %}
