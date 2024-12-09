@@ -18,6 +18,17 @@ from .models import (
 
 
 # Registration Form
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100, required=True, label="Your Name")
+    email = forms.EmailField(required=True, label="Your Email")
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 5}), 
+        required=True, 
+        label="Your Message"
+    )
+
+
+
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
