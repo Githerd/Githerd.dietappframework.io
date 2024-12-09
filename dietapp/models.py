@@ -93,9 +93,27 @@ class Carbs(models.Model):
 class Fats(models.Model):
     name = models.CharField(max_length=100)
     fat_content = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Fat Content (g)")
+    
     def __str__(self):
         return self.name
 
+class Proteins(models.Model):
+	name = models.TextField(max_length=50)
+	gfat = models.PositiveIntegerField(default=0)
+	gcarb = models.PositiveIntegerField(default=0)
+	gprotein = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+class Drinks(models.Model):
+	name = models.TextField(max_length=50)
+	gfat = models.PositiveIntegerField(default=0)
+	gcarb = models.PositiveIntegerField(default=0)
+	gprotein = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
 
 # Vitamins for Meals
 class Vitamin(models.Model):
