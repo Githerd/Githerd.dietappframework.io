@@ -8,10 +8,8 @@ from django.utils.timezone import now
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from .models import (
-    Meal, Exercise, TDEE, Carbs, Drinks, Fats, Meals, Vitamins, Proteins, User, Weekly
-)
-from .forms import MealForm, UserProfileForm, TDEEForm, JournalEntryForm
+from .models import Meal, Carbs, Drinks, Fats, Meals, Vitamins, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
+from .forms import TDEEForm, MealForm, UserProfileForm, TDEEForm, JournalEntryForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, ContactForm, RegisterForm, MealForm, CustomPasswordResetForm, HealthDataForm, WeeklyCaloriesView, TDEEView, TDEEForm, JournalEntryForm, WeeklyMealForm, ExerciseForm, MineralForm, VitaminForm
 
 
 # ========== Static Pages ==========
