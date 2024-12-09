@@ -3,10 +3,12 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
+
+class User(AbstractUser):
+    pass
 
 # Choices
 EXERCISE_TYPE_CHOICES = [
