@@ -24,6 +24,48 @@ class User(AbstractUser):
         return self.username
 
 
+#Meal
+class Meal(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals")
+    name = models.CharField(max_length=100, verbose_name="Meal Name")
+    calories = models.FloatField(default=0.0, verbose_name="Calories")
+    protein = models.FloatField(default=0.0, verbose_name="Protein (g)")
+    carbs = models.FloatField(default=0.0, verbose_name="Carbs (g)")
+    fat = models.FloatField(default=0.0, verbose_name="Fat (g)")
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.calories} kcal"
+
+
+class Carbs(models.Model):
+	name = models.TextField(max_length=50)
+	gfat = models.PositiveIntegerField(default=0)
+	gcarb = models.PositiveIntegerField(default=0)
+	gprotein = models.PositiveIntegerField(default=0)
+    
+
+class Fats(models.Model):
+	name = models.TextField(max_length=50)
+	gfat = models.PositiveIntegerField(default=0)
+	gcarb = models.PositiveIntegerField(default=0)
+	gprotein = models.PositiveIntegerField(default=0)
+    
+
+class Proteins(models.Model):
+	name = models.TextField(max_length=50)
+	gfat = models.PositiveIntegerField(default=0)
+	gcarb = models.PositiveIntegerField(default=0)
+	gprotein = models.PositiveIntegerField(default=0)
+    
+
+class Drinks(models.Model):
+	name = models.TextField(max_length=50)
+	gfat = models.PositiveIntegerField(default=0)
+	gcarb = models.PositiveIntegerField(default=0)
+	gprotein = models.PositiveIntegerField(default=0)
+    
+
 # UserProfile model to store additional user information
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
