@@ -14,7 +14,54 @@ from django import forms
 from .models import (
     Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
 )
+from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm #Inheritance Relationship
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from django.apps import apps
+from .models import Profile  # Directly import the Profile model
+
+
+User = get_user_model()
+
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.add_input(Submit('submit', 'Sign Up'))
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+
+class UserUpdateForm(forms.ModelForm):
+    email = forms.EmailField()
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+from django import forms
+from .models import Profile
+
+class ProfileUpdateForm(forms.ModelForm):
+    """
+    Form for updating user profile information including image, age, height, weight, and goal.
+    """
+    class Meta:
+        model = Profile  # Directly referencing the Profile model
+        fields = ['image', 'age', 'height', 'weight', 'goal']  # Include all necessary fields
+        widgets = {
+            'goal': forms.Select(attrs={'class': 'form-control'}),  # Dropdown for goal
+            'age': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your age'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your height in cm'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your weight in kg'}),
+        }
 
 class ProfileUpdateForm(forms.ModelForm):
     """
