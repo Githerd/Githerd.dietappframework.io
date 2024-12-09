@@ -7,11 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import User, Meal, Exercise, Weekly, JournalEntry, TDEE, Message, UserProfile
-from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm, ContactForm
+from .models import User, Meal, Vitamin, Exercise, Weekly, JournalEntry, TDEE, Message, UserProfile
+from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm, ContactForm, VitaminForm
 from django.utils.timezone import now
 from django.shortcuts import render
 from django.core.mail import send_mail
+from django.forms import inlineformset_factory
+
 
 
 # ========== Views ==========
@@ -42,6 +44,32 @@ def contact(request):
 def about(request):
     """Render the About page."""
     return render(request, 'dietapp/about.html')
+
+
+def meal_create(request):
+    VitaminFormSet = inlineformset_factory(Meal, Vitamin, form=VitaminForm, extra=2)
+
+    if request.method == 'POST':
+        meal_form = MealForm(request.POST)
+        vitamin_formset = VitaminFormSet(request.POST, instance=meal)
+
+        if meal_form.is_valid() and vitamin_formset.is_valid():
+            meal = meal_form.save(commit=False)
+            meal.user = request.user
+            meal.save()
+            vitamin_formset.instance = meal
+            vitamin_formset.save()
+            messages.success(request, "Meal created with vitamins!")
+            return redirect('meal-list')
+    else:
+        meal_form = MealForm()
+        vitamin_formset = VitaminFormSet()
+
+    return render(request, 'dietapp/meal_form.html', {
+        'meal_form': meal_form,
+        'vitamin_formset': vitamin_formset,
+    })
+
 
 
 # ========== User Management ==========
