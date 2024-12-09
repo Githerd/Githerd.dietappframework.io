@@ -1,34 +1,20 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse
-from django.contrib.auth import login
-from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm
-from .models import Meal, UserProfile, Message, Exercise, TDEE, JournalEntry
-from django.contrib.auth.models import User
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.utils import timezone
+from django.urls import reverse, reverse_lazy
+from django.contrib import messages
+from django.db import IntegrityError
 from django.utils.timezone import now
-from .forms import TDEEForm
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
+from .models import User, Meals, Weekly, JournalEntry, TDEE, Message, UserProfile
+from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm
 
-# Basic Views
-def home(request):
-    return render(request, 'dietapp/home.html')
-
-
-def about(request):
-    return render(request, 'dietapp/about.html')
-
-
-def contact(request):
-    return render(request, 'dietapp/contact.html')
-
-
-# User Management
+# ========== User Management ==========
 def register(request):
+    """Register a new user."""
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         profile_form = UserProfileForm(request.POST)
@@ -38,7 +24,7 @@ def register(request):
             profile.user = user
             profile.save()
             login(request, user)
-            messages.success(request, 'Registration successful! Welcome to DietApp.')
+            messages.success(request, "Registration successful! Welcome to DietApp.")
             return redirect('dashboard')
     else:
         form = RegisterForm()
@@ -46,15 +32,40 @@ def register(request):
     return render(request, 'dietapp/register.html', {'form': form, 'profile_form': profile_form})
 
 
+def login_view(request):
+    """Log in the user."""
+    if request.method == 'POST':
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, "dietapp/login.html")
+
+
+@login_required
+def logout_view(request):
+    """Log out the user."""
+    logout(request)
+    return redirect('login')
+
+
+# ========== Dashboard ==========
 @login_required
 def dashboard(request):
+    """Display the user's dashboard."""
     user_profile = UserProfile.objects.get(user=request.user)
     return render(request, 'dietapp/dashboard.html', {'user': user_profile})
 
 
+# ========== TDEE Calculator ==========
 def tdee_calculate(request):
+    """TDEE Calculation."""
     result = None
-    if request.method == "POST":
+    if request.method == 'POST':
         form = TDEEForm(request.POST)
         if form.is_valid():
             weight = form.cleaned_data['weight']
@@ -62,19 +73,15 @@ def tdee_calculate(request):
             age = form.cleaned_data['age']
             gender = form.cleaned_data['gender']
             activity_level = form.cleaned_data['activity_level']
-
-            # Gender constant: 5 for male, -161 for female
             gender_value = 5 if gender == "male" else -161
             activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
-
             result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
     else:
         form = TDEEForm()
+    return render(request, "dietapp/meal_plan.html", {"form": form, "result": result})
 
-    return render(request, "dietapp/tdee_calculate.html", {"form": form, "result": result})
 
-
-# Journal Management
+# ========== Journal Management ==========
 class JournalListView(LoginRequiredMixin, ListView):
     model = JournalEntry
     template_name = 'dietapp/journal_list.html'
@@ -83,13 +90,13 @@ class JournalListView(LoginRequiredMixin, ListView):
 
 class JournalDetailView(LoginRequiredMixin, DetailView):
     model = JournalEntry
-    template_name = 'dietapp/journal_detail.html'
+    template_name = 'dietapp/journal_entry_detail.html'
 
 
 class JournalCreateView(LoginRequiredMixin, CreateView):
     model = JournalEntry
     form_class = JournalEntryForm
-    template_name = 'dietapp/journal_form.html'
+    template_name = 'dietapp/journal_entry_form.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -99,7 +106,7 @@ class JournalCreateView(LoginRequiredMixin, CreateView):
 class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = JournalEntry
     form_class = JournalEntryForm
-    template_name = 'dietapp/journal_form.html'
+    template_name = 'dietapp/journal_entry_form.html'
 
     def test_func(self):
         return self.request.user == self.get_object().author
@@ -114,56 +121,33 @@ class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == self.get_object().author
 
 
-# Messages
+# ========== Meal Management ==========
 @login_required
-def send_message(request):
+def single_meal(request):
+    """Manage single meals."""
+    if request.method == "GET":
+        meals = Meals.objects.filter(mealcreator=request.user)
+        return render(request, "dietapp/single_meal.html", {"meals": meals})
+
     if request.method == "POST":
-        receiver_username = request.POST.get('receiver')
-        content = request.POST.get('content')
-        if not receiver_username or not content:
-            messages.error(request, "Both receiver and message content are required.")
-            return redirect('send-message')
-
-        try:
-            receiver = User.objects.get(username=receiver_username)
-            Message.objects.create(sender=request.user, receiver=receiver, content=content)
-            messages.success(request, "Message sent successfully!")
-            return redirect('inbox')
-        except User.DoesNotExist:
-            messages.error(request, "User does not exist.")
-    return render(request, 'messaging/send_message.html')
+        # Logic to add meals
+        ...
+        return redirect('single_meal')
 
 
+# ========== Weekly Planning ==========
 @login_required
-def inbox(request):
-    messages = Message.objects.filter(receiver=request.user).order_by('-timestamp')
-    return render(request, 'messaging/inbox.html', {'messages': messages})
+def weekly_plan(request):
+    """Manage weekly meal plans."""
+    if request.method == "GET":
+        meals = Meals.objects.filter(mealcreator=request.user)
+        weekly_meals = Weekly.objects.filter(mealuser=request.user)
+        macros = calculate_macros(weekly_meals)
+        percentages = calculate_percentage(macros)
+        context = {"meals": meals, "weekly_meals": weekly_meals, "macros": macros, "percentages": percentages}
+        return render(request, "dietapp/weekly_plan.html", context)
 
-
-@login_required
-def sent_messages(request):
-    messages = Message.objects.filter(sender=request.user).order_by('-timestamp')
-    return render(request, 'messaging/sent_messages.html', {'messages': messages})
-
-
-# TDEE & Weekly Calories
-class TDEEView(TemplateView):
-    template_name = 'dietapp/tdee.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tdee = TDEE.objects.filter(user=self.request.user).first()
-        context['tdee'] = tdee.calories if tdee else 0
-        return context
-
-
-class WeeklyCaloriesView(TemplateView):
-    template_name = 'dietapp/weekly_calories.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        weekly_meals = Meal.objects.filter(user=self.request.user, date__week=timezone.now().isocalendar()[1])
-        weekly_exercises = Exercise.objects.filter(user=self.request.user, date__week=timezone.now().isocalendar()[1])
-        context['total_calories_intake'] = sum(meal.calories for meal in weekly_meals)
-        context['total_calories_burned'] = sum(exercise.calories_burned for exercise in weekly_exercises)
-        return context
+    if request.method == "POST":
+        # Logic to handle weekly meal addition
+        ...
+        return redirect('weekly_plan')
