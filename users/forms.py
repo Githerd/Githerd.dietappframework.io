@@ -119,6 +119,28 @@ class DietAppForm(forms.ModelForm):
         }
 
 
+class TDEEForm(forms.Form):
+    weight = forms.FloatField(label="Weight (kg)", required=True)
+    height = forms.FloatField(label="Height (cm)", required=True)
+    age = forms.IntegerField(label="Age", required=True)
+    gender = forms.ChoiceField(
+        choices=[("male", "Male"), ("female", "Female")],
+        widget=forms.RadioSelect,
+        required=True
+    )
+    activity_level = forms.ChoiceField(
+        choices=[
+            (1, "Sedentary"),
+            (2, "Lightly Active"),
+            (3, "Moderately Active"),
+            (4, "Very Active"),
+            (5, "Super Active"),
+        ],
+        label="Activity Level",
+        required=True
+    )
+
+
 class JournalEntryForm(forms.ModelForm):
     class Meta:
         model = JournalEntry
