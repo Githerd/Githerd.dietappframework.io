@@ -90,6 +90,12 @@ class Carbs(models.Model):
         return self.name
 
 
+class Fats(models.Model):
+    name = models.CharField(max_length=100)
+    fat_content = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Fat Content (g)")
+    def __str__(self):
+        return self.name
+
 
 # Vitamins for Meals
 class Vitamin(models.Model):
