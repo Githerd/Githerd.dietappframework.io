@@ -120,7 +120,7 @@ LOGIN_REDIRECT_URL = 'dietapp-home'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'dietapp-home'
 
-AUTH_USER_MODEL = 'users.User'  # Custom User model
+
 
 # Email backend configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
