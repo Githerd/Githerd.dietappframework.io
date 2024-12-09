@@ -212,8 +212,8 @@
         {% endfor %}
     {% else %}
     <p class="text-center text-muted">You do not have any saved meals.</p>
-    <a href="{% url 'add-exercise' %}" class="btn btn-info">Add Today's Workout</a>
     {% endif %}
     {% endif %}
 </div>
+<a href="{% url 'add-exercise' %}" class="btn btn-info">Add Today's Workout</a>
 {% endblock %}
