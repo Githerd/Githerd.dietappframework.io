@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm #Inheritance Relationship
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import Profile
+from django.apps import apps
 User = get_user_model()
 
 class UserRegisterForm(UserCreationForm):
@@ -29,5 +29,8 @@ class UserUpdateForm(forms.ModelForm):
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
-        model = Profile
-        fields = ['image']
+        model = apps.get_model('users', 'Profile')  # Dynamically get the Profile model
+        fields = ['image', 'age', 'height', 'weight', 'goal']
+        widgets = {
+            'goal': forms.Select(attrs={'class': 'form-control'}),
+        }
