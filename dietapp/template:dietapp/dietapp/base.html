@@ -23,6 +23,9 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dietapp-home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'dietapp-about' %}">About</a>
                     </li>
                     <li class="nav-item">
@@ -34,6 +37,18 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'meal-plan' %}">Calculate TDEE</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'singlemeal' %}">Log Meal</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'weekly-plan' %}">Weekly Plan</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'send-message' %}">Messages</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
@@ -62,6 +77,17 @@
     <footer class="bg-dark text-white py-3 mt-auto">
         <div class="container text-center">
             <p>&copy; 2024 DietApp | All Rights Reserved</p>
+            <p>
+                <a href="{% url 'dietapp-home' %}" class="text-white">Home</a> |
+                <a href="{% url 'dietapp-about' %}" class="text-white">About</a> |
+                <a href="{% url 'dietapp-contact' %}" class="text-white">Contact</a> |
+                {% if user.is_authenticated %}
+                    <a href="{% url 'journal-list' %}" class="text-white">Journal</a> |
+                    <a href="{% url 'meal-plan' %}" class="text-white">Calculate TDEE</a> |
+                    <a href="{% url 'singlemeal' %}" class="text-white">Log Meal</a> |
+                    <a href="{% url 'weekly-plan' %}" class="text-white">Weekly Plan</a>
+                {% endif %}
+            </p>
         </div>
     </footer>
 
