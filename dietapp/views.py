@@ -247,44 +247,93 @@ def exercise_delete(request, pk):
 
 
 
+# ========== Meal Views ==========
+@login_required
+def single_meal(request):
+    """Create or view single meals."""
+    if request.method == "POST":
+        form = MealForm(request.POST)
+        if form.is_valid():
+            meal = form.save(commit=False)
+            meal.user = request.user
+            meal.save()
+            messages.success(request, "Meal added successfully!")
+            return redirect('singlemeal')
+    else:
+        form = MealForm()
+
+    meals = Meals.objects.filter(mealcreator=request.user)
+    return render(request, 'dietapp/single_meal.html', {'form': form, 'meals': meals})
 
 
 @login_required
-def send_message(request):
-    """Allow a logged-in user to send a message to another user."""
-    if request.method == "POST":
-        receiver_username = request.POST.get('receiver')
-        content = request.POST.get('content')
+def delete_meal(request, meal_id):
+    """Delete a specific meal."""
+    meal = get_object_or_404(Meals, id=meal_id, mealcreator=request.user)
+    meal.delete()
+    messages.success(request, "Meal deleted successfully!")
+    return redirect('singlemeal')
 
-        # Validate inputs
+
+# ========== Weekly Plan Views ==========
+@login_required
+def weekly_plan(request):
+    """Manage weekly meal plans."""
+    if request.method == "POST":
+        day = request.POST.get("day")
+        meal_id = request.POST.get("meal_id")
+        meal = get_object_or_404(Meals, id=meal_id, mealcreator=request.user)
+        Weekly.objects.create(day=day, meal=meal, user=request.user)
+        messages.success(request, f"Meal added to your weekly plan for {day}!")
+        return redirect('weekly_plan')
+
+    meals = Meals.objects.filter(mealcreator=request.user)
+    weekly_meals = Weekly.objects.filter(user=request.user)
+    return render(request, 'dietapp/weekly_plan.html', {'meals': meals, 'weekly_meals': weekly_meals})
+
+
+@login_required
+def delete_weekly_plan(request, weekly_id):
+    """Remove a meal from the weekly plan."""
+    weekly_entry = get_object_or_404(Weekly, id=weekly_id, user=request.user)
+    weekly_entry.delete()
+    messages.success(request, "Meal removed from weekly plan!")
+    return redirect('weekly_plan')
+
+
+# ========== Messaging Views ==========
+@login_required
+def send_message(request):
+    """Send a message to another user."""
+    if request.method == "POST":
+        receiver_username = request.POST.get("receiver")
+        content = request.POST.get("content")
         if not receiver_username or not content:
-            messages.error(request, "Both recipient and message content are required.")
+            messages.error(request, "Both receiver and message content are required.")
             return redirect('send-message')
 
         try:
             receiver = User.objects.get(username=receiver_username)
-            Message.objects.create(sender=request.user, receiver=receiver, content=content, timestamp=now())
-            messages.success(request, f"Message sent to {receiver.username}!")
+            Message.objects.create(sender=request.user, receiver=receiver, content=content)
+            messages.success(request, "Message sent successfully!")
             return redirect('inbox')
         except User.DoesNotExist:
             messages.error(request, "User does not exist.")
-            return redirect('send-message')
-
     return render(request, 'messaging/send_message.html')
 
 
 @login_required
 def inbox(request):
-    """Display all messages received by the logged-in user."""
-    user_messages = Message.objects.filter(receiver=request.user).order_by('-timestamp')
-    return render(request, 'messaging/inbox.html', {'messages': user_messages})
+    """View received messages."""
+    messages_received = Message.objects.filter(receiver=request.user).order_by('-timestamp')
+    return render(request, 'messaging/send_message.html', {'messages': messages_received})
 
 
 @login_required
 def sent_messages(request):
-    """Display all messages sent by the logged-in user."""
-    user_messages = Message.objects.filter(sender=request.user).order_by('-timestamp')
-    return render(request, 'messaging/sent_messages.html', {'messages': user_messages})
+    """View sent messages."""
+    messages_sent = Message.objects.filter(sender=request.user).order_by('-timestamp')
+    return render(request, 'messaging/send_message.html', {'messages': messages_sent}) 
 
 
 @login_required
@@ -299,7 +348,8 @@ def delete_message(request, message_id):
     else:
         messages.error(request, "You do not have permission to delete this message.")
 
-    return redirect('inbox')
+    return redirect('send_message')
+
 
 # ========== Weekly Calories View ==========
 class WeeklyCaloriesView(TemplateView):
