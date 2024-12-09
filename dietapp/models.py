@@ -3,15 +3,18 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator
-from django.contrib.auth import get_user_model
-from django.db import models
 from django.contrib.auth.models import User
-
-
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+# Choices
+EXERCISE_TYPE_CHOICES = [
+    ('cardio', 'Cardio'),
+    ('strength', 'Strength'),
+]
 
+# User Profile
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     age = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="Age")
@@ -23,6 +26,7 @@ class UserProfile(models.Model):
         return f"Profile of {self.user.username}"
 
 
+# Meal Model
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals")
     name = models.CharField(max_length=100, verbose_name="Meal Name")
@@ -35,6 +39,8 @@ class Meal(models.Model):
 
     class Meta:
         ordering = ['-date']
+        verbose_name = "Meal"
+        verbose_name_plural = "Meals"
 
     def __str__(self):
         return f"Meal: {self.name} by {self.user.username}"
@@ -43,12 +49,26 @@ class Meal(models.Model):
         return reverse('meal-detail', kwargs={'pk': self.pk})
 
 
-EXERCISE_TYPE_CHOICES = [
-    ('cardio', 'Cardio'),
-    ('strength', 'Strength'),
-]
+# Vitamins and Minerals for Meal
+class Vitamin(models.Model):
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
+    name = models.CharField(max_length=50, verbose_name="Vitamin Name")
+    percentage = models.PositiveIntegerField(default=0, verbose_name="Percentage (%)")
+
+    def __str__(self):
+        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
 
 
+class Mineral(models.Model):
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="minerals")
+    name = models.CharField(max_length=50, verbose_name="Mineral Name")
+    percentage = models.PositiveIntegerField(default=0, verbose_name="Percentage (%)")
+
+    def __str__(self):
+        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
+
+
+# Exercise Model
 class Exercise(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
     name = models.CharField(max_length=100, verbose_name="Exercise Name")
@@ -59,11 +79,14 @@ class Exercise(models.Model):
 
     class Meta:
         ordering = ['-date']
+        verbose_name = "Exercise"
+        verbose_name_plural = "Exercises"
 
     def __str__(self):
         return f"{self.name} ({self.calories_burned} kcal)"
 
 
+# Health Data
 class HealthData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="health_data")
     weight = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Weight (kg)")
@@ -75,6 +98,8 @@ class HealthData(models.Model):
 
     class Meta:
         ordering = ['-date']
+        verbose_name = "Health Data"
+        verbose_name_plural = "Health Data"
 
     def __str__(self):
         return f"{self.user.username} - {self.weight} kg ({self.date})"
@@ -86,28 +111,7 @@ class HealthData(models.Model):
         return None
 
 
-class JournalEntry(models.Model):
-    title = models.CharField(max_length=200, verbose_name="Title")
-    content = models.TextField(verbose_name="Content")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
-    date_posted = models.DateTimeField(default=now, verbose_name="Date Posted")
-
-    def __str__(self):
-        return self.title
-
-
-class TDEE(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
-    calories = models.PositiveIntegerField(default=0, verbose_name="Calories")
-    date = models.DateField(auto_now_add=True, verbose_name="Date Recorded")
-
-    class Meta:
-        ordering = ['-date']
-
-    def __str__(self):
-        return f"TDEE for {self.user.username}: {self.calories} kcal"
-
-
+# Weekly Meal Plan
 class Weekly(models.Model):
     DAYS_OF_WEEK = [
         ('Monday', 'Monday'),
@@ -124,11 +128,14 @@ class Weekly(models.Model):
 
     class Meta:
         ordering = ['day']
+        verbose_name = "Weekly Meal Plan"
+        verbose_name_plural = "Weekly Meal Plans"
 
     def __str__(self):
         return f"{self.meal.name} on {self.day} for {self.user.username}"
 
 
+# Messaging System
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
@@ -137,6 +144,8 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
