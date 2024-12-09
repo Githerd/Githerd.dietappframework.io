@@ -1,67 +1,70 @@
-from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import TDEE, Meal, Exercise
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from .models import Meal, Exercise, TDEE
+from .forms import TDEEForm
 from django.utils.timezone import now
 
+
 # ========== TDEE View ==========
-class TDEEView(LoginRequiredMixin, TemplateView):
+@method_decorator(login_required, name='dispatch')
+class TDEEView(TemplateView):
     template_name = 'dietapp/tdee.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tdee = TDEE.objects.filter(user=self.request.user).order_by('-date').first()
-
-        if tdee:
-            context['tdee'] = tdee.calories
-        else:
-            context['tdee'] = 0  # Default value if no TDEE record exists
-
+        context['form'] = TDEEForm()
         return context
 
     def post(self, request, *args, **kwargs):
-        # Handle form submission for calculating TDEE
-        weight = float(request.POST.get('weight', 0))
-        height = float(request.POST.get('height', 0))
-        age = int(request.POST.get('age', 0))
-        gender = request.POST.get('gender', 'male')
-        activity_level = int(request.POST.get('activity_level', 1))
+        form = TDEEForm(request.POST)
+        result = None
+        if form.is_valid():
+            weight = form.cleaned_data['weight']
+            height = form.cleaned_data['height']
+            age = form.cleaned_data['age']
+            gender = form.cleaned_data['gender']
+            activity_level = form.cleaned_data['activity_level']
 
-        # Gender constant: 5 for male, -161 for female
-        gender_constant = 5 if gender == 'male' else -161
-        activity_multipliers = [1.2, 1.375, 1.55, 1.725, 1.9]
-        multiplier = activity_multipliers[activity_level - 1]
+            # Gender constant: 5 for male, -161 for female
+            gender_value = 5 if gender == "male" else -161
+            activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
 
-        # TDEE calculation
-        tdee_calories = ((10 * weight) + (6.25 * height) - (5 * age) + gender_constant) * multiplier
+            # Calculate TDEE
+            result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
 
-        # Save the TDEE result
-        TDEE.objects.create(user=request.user, calories=tdee_calories, date=now())
+            # Save TDEE data for the user
+            TDEE.objects.update_or_create(
+                user=request.user,
+                defaults={"calories": round(result)},
+            )
 
-        return render(request, self.template_name, {'tdee': tdee_calories})
+        return render(request, self.template_name, {'form': form, 'result': round(result) if result else None})
 
 
 # ========== Weekly Calories View ==========
-class WeeklyCaloriesView(LoginRequiredMixin, TemplateView):
+@method_decorator(login_required, name='dispatch')
+class WeeklyCaloriesView(TemplateView):
     template_name = 'dietapp/weekly_calories.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
 
-        # Get meals and exercises for the current week
-        current_week = now().isocalendar()[1]
-        weekly_meals = Meal.objects.filter(user=self.request.user, date__week=current_week)
-        weekly_exercises = Exercise.objects.filter(user=self.request.user, date__week=current_week)
+        # Fetch all meals and exercises for the current week
+        weekly_meals = Meal.objects.filter(user=user, date__week=now().isocalendar()[1])
+        weekly_exercises = Exercise.objects.filter(user=user, date__week=now().isocalendar()[1])
 
-        # Calculate total calories intake and burned
+        # Calculate total intake and burned calories
         total_calories_intake = sum(meal.calories for meal in weekly_meals)
         total_calories_burned = sum(exercise.calories_burned for exercise in weekly_exercises)
 
-        # Pass data to the context
-        context['total_calories_intake'] = total_calories_intake
-        context['total_calories_burned'] = total_calories_burned
-        context['net_calories'] = total_calories_intake - total_calories_burned
+        # Add data to context
         context['weekly_meals'] = weekly_meals
         context['weekly_exercises'] = weekly_exercises
+        context['total_calories_intake'] = total_calories_intake
+        context['total_calories_burned'] = total_calories_burned
+        context['net_calories'] = total_calories_intake - total_calories_burned  # Net calorie balance
 
         return context
