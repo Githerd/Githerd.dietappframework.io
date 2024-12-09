@@ -5,11 +5,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from .models import User, Meal, Weekly, JournalEntry, TDEE, Message, UserProfile
+from .models import User, Meal, Exercise, Weekly, JournalEntry, TDEE, Message, UserProfile
 from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm
+from django.views.generic import TemplateView
+from django.utils.timezone import now
 
 
 # ========== User Management ==========
@@ -79,6 +81,46 @@ def tdee_calculate(request):
     else:
         form = TDEEForm()
     return render(request, "dietapp/tdee.html", {"form": form, "result": result})
+
+
+
+class TDEEView(TemplateView):
+    template_name = "dietapp/tdee.html"
+
+    def calculate_tdee(weight, height, age, gender, activity_level):
+    """Calculate Total Daily Energy Expenditure (TDEE)."""
+    gender_value = 5 if gender == "male" else -161
+    activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
+    return ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
+    
+    def get(self, request, *args, **kwargs):
+        """Handles GET requests."""
+        form = TDEEForm()
+        return render(request, self.template_name, {"form": form, "result": None})
+
+    def post(self, request, *args, **kwargs):
+        """Handles POST requests to calculate TDEE."""
+        form = TDEEForm(request.POST)
+        result = None
+        if form.is_valid():
+            weight = form.cleaned_data['weight']
+            height = form.cleaned_data['height']
+            age = form.cleaned_data['age']
+            gender = form.cleaned_data['gender']
+            activity_level = form.cleaned_data['activity_level']
+
+            # Gender constant: 5 for male, -161 for female
+            gender_value = 5 if gender == "male" else -161
+            activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
+
+            # Calculate TDEE
+            result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
+
+            # Save TDEE to database for the logged-in user
+            if request.user.is_authenticated:
+                TDEE.objects.create(user=request.user, calories=int(result))
+
+        return render(request, self.template_name, {"form": form, "result": result})
 
 
 # ========== Journal Management ==========
@@ -176,6 +218,40 @@ def delete_weekly_plan(request, weekly_id):
     weekly_entry.delete()
     messages.success(request, "Meal removed from the weekly plan.")
     return redirect('weekly_plan')
+
+
+
+class WeeklyCaloriesView(TemplateView):
+    template_name = "dietapp/weekly_calories.html"
+
+    def get_context_data(self, **kwargs):
+        """Add weekly calories data to context."""
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            # Get current week number
+            current_week = now().isocalendar()[1]
+
+            # Fetch meals and exercises for the week
+            weekly_meals = Meal.objects.filter(user=self.request.user, date__week=current_week)
+            weekly_exercises = Exercise.objects.filter(user=self.request.user, date__week=current_week)
+
+            # Calculate total calories intake and burned
+            total_calories_intake = sum(meal.calories for meal in weekly_meals)
+            total_calories_burned = sum(exercise.calories_burned for exercise in weekly_exercises)
+
+            # Add to context
+            context['total_calories_intake'] = total_calories_intake
+            context['total_calories_burned'] = total_calories_burned
+            context['weekly_meals'] = weekly_meals
+            context['weekly_exercises'] = weekly_exercises
+        else:
+            # Set defaults for non-authenticated users
+            context['total_calories_intake'] = 0
+            context['total_calories_burned'] = 0
+            context['weekly_meals'] = []
+            context['weekly_exercises'] = []
+
+        return context
 
 
 # ========== Utility Functions ==========
