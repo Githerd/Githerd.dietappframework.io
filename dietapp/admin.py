@@ -1,7 +1,20 @@
 from django.contrib import admin
-from .models import  User, Carbs, Fats, Proteins, Drinks, Meal, Exercise, HealthData, TDEE, Weekly, Message, JournalEntry
+from .models import (
+    User,
+    Carbs,
+    Fats,
+    Proteins,
+    Drinks,
+    Meal,
+    Exercise,
+    HealthData,
+    TDEE,
+    Weekly,
+    Message,
+    JournalEntry
+)
 
-# Register your models here
+# Register your models
 admin.site.register(User)
 admin.site.register(Carbs)
 admin.site.register(Fats)
@@ -14,6 +27,3 @@ admin.site.register(TDEE)
 admin.site.register(Weekly)
 admin.site.register(Message)
 admin.site.register(JournalEntry)
-
-
-
