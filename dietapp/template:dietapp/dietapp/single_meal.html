@@ -2,8 +2,10 @@
 
 {% block body %}
 <div class="container mt-5">
+    <!-- Header -->
     <h1 class="text-center" style="color: #003C5F;">Create Meal</h1>
 
+    <!-- Check if the user is authenticated -->
     {% if not user.is_authenticated %}
     <div class="alert alert-primary text-center mt-4">
         <p class="mb-3">
@@ -15,8 +17,10 @@
     </div>
     {% else %}
 
+    <!-- Meal Creation Form -->
     <form id="singlemealform" method="post" action="{% url 'singlemeal' %}">
         {% csrf_token %}
+        <!-- Meal Title -->
         <div class="form-group">
             <input type="text" class="form-control" name="mealtitle" id="mealtitle" placeholder="Give your meal a title" required>
         </div>
@@ -90,7 +94,7 @@
             <div class="d-flex align-items-center">
                 <select class="form-control mr-3" name="proteinsource" id="proteinsource" style="width: 75%;">
                     <option value="" selected>Select protein source</option>
-                   <option value="1">Chicken or Turkey - Breast</option>
+                    <option value="1">Chicken or Turkey - Breast</option>
                     <option value="2">Chicken - Leg</option>
                     <option value="3">Turkey - Leg</option>
                     <option value="4">Chicken - Ground</option>
@@ -144,11 +148,15 @@
                     <option value="11">Wine</option>
                     <option value="12">Energy Drink</option>
                     <option value="13">Sports Drink (Gatorade)</option>
+                    <option value="14">Greek Yoghurt</option>
+                    <option value="15">Flavoured Yoghurt</option>
+                    <option value="16">Kombucha</option>
                 </select>
                 <input type="number" class="form-control" name="drinkmililiters" id="drinkmililiters" placeholder="ml" style="width: 25%;">
             </div>
         </div>
 
+        <!-- Submit Button -->
         <div class="text-center">
             <button type="submit" class="btn btn-success">Save Meal</button>
         </div>
@@ -161,38 +169,37 @@
     {% if all_meals %}
         {% for meal in all_meals %}
         <div class="card my-3">
-    <div class="card-body">
-        <h5 class="card-title">{{ meal.name }}</h5>
-        <p class="card-text">
-            <strong>{{ meal.calories }} kcal</strong> - 
-            {{ meal.totalcarb }}g Carbs, 
-            {{ meal.totalfat }}g Fats, 
-            {{ meal.totalprotein }}g Proteins
-        </p>
-        <p class="card-text">
-            <strong>Vitamins:</strong>
-            {% if meal.vitamins %}
-            <ul>
-                {% for vitamin, amount in meal.vitamins.items %}
-                <li>{{ vitamin }}: {{ amount }}%</li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <span>No vitamins listed</span>
-            {% endif %}
-        </p>
-        <p class="card-text">
-            <strong>Minerals:</strong>
-            {% if meal.minerals %}
-            <ul>
-                {% for mineral, amount in meal.minerals.items %}
-                <li>{{ mineral }}: {{ amount }}%</li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <span>No minerals listed</span>
-            {% endif %}
-          </p>         
+            <div class="card-body">
+                <h5 class="card-title">{{ meal.name }}</h5>
+                <p class="card-text">
+                    <strong>{{ meal.calories }} kcal</strong> - 
+                    {{ meal.totalcarb }}g Carbs, 
+                    {{ meal.totalfat }}g Fats, 
+                    {{ meal.totalprotein }}g Proteins
+                </p>
+                <p class="card-text">
+                    <strong>Vitamins:</strong>
+                    {% if meal.vitamins %}
+                    <ul>
+                        {% for vitamin, amount in meal.vitamins.items %}
+                        <li>{{ vitamin }}: {{ amount }}%</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <span>No vitamins listed</span>
+                    {% endif %}
+                </p>
+                <p class="card-text">
+                    <strong>Minerals:</strong>
+                    {% if meal.minerals %}
+                    <ul>
+                        {% for mineral, amount in meal.minerals.items %}
+                        <li>{{ mineral }}: {{ amount }}%</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <span>No minerals listed</span>
+                    {% endif %}
                 </p>
                 <p>{{ meal.ingredients }}</p>
                 <form method="post" action="{% url 'deletemeal' %}">
