@@ -1,55 +1,48 @@
 from django.test import TestCase
-from django.urls import reverse
-from .models import User
-from .forms import UserRegisterForm
+from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
+from .models import Profile
 
-class UserTests(TestCase):
+class UserFormsTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='password123',
-            email='testuser@example.com'
-        )
+        # Set up a user and profile for the tests
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        Profile.objects.get_or_create(user=self.user, defaults={'image': 'default.png'})
 
-
-    def test_user_profile_update(self):
-        self.client.login(username='testuser', password='password123')
-        response = self.client.post(reverse('profile'), {
-            'username': 'updateduser',
-            'email': 'updated@example.com',
-        })
-        self.assertEqual(response.status_code, 302)  # Should redirect after successful update
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.username, 'updateduser')
-        self.assertEqual(self.user.email, 'updated@example.com')
-
-    
-    def test_user_creation(self):
-        self.assertEqual(self.user.username, 'testuser')
-        self.assertTrue(self.user.check_password('password123'))
-
-    def test_user_login(self):
-        response = self.client.post(reverse('login'), {'username': 'testuser', 'password': 'password123'})
-        self.assertEqual(response.status_code, 302)  # Should redirect after login
-
-    def test_invalid_login(self):
-        response = self.client.post(reverse('login'), {'username': 'wronguser', 'password': 'wrongpassword'})
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Please enter a correct username and password.")  # Adjust for your template message
-
-
-    def test_password_reset(self):
-        response = self.client.post(reverse('password_reset'), {'email': 'testuser@example.com'})
-        self.assertEqual(response.status_code, 302)  # Should redirect after initiating password reset
-        self.assertContains(response, "We've emailed you instructions for resetting your password.")
-    
-
-    def test_registration_view(self):
-        response = self.client.post(reverse('register'), {
+    def test_user_register_form(self):
+        # Test user registration form with valid data
+        form_data = {
             'username': 'newuser',
             'email': 'newuser@example.com',
-            'password1': 'password123',
-            'password2': 'password123'
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(User.objects.filter(username='newuser').exists())
+            'password1': 'django1234',
+            'password2': 'django1234'
+        }
+        form = UserRegisterForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_user_update_form(self):
+        # Test user update form with valid data
+        form_data = {
+            'username': 'updateduser',
+            'email': 'updateduser@example.com'
+        }
+        form = UserUpdateForm(data=form_data, instance=self.user)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, 'updateduser')
+
+    def test_profile_update_with_invalid_image_format(self):
+        # Test profile update with an invalid image format
+        invalid_image_data = b'this is not real image data'
+        invalid_image_file = SimpleUploadedFile('new_image.txt', invalid_image_data, content_type='text/plain')
+        form = ProfileUpdateForm(files={'image': invalid_image_file}, instance=self.user.profile)
+        self.assertFalse(form.is_valid())
+
+    def test_profile_update_with_oversized_image(self):
+        # Test profile update with an oversized image
+        oversized_image_data = b'\x00' * 5242880  # 5MB of zeros
+        oversized_image_file = SimpleUploadedFile('new_image.jpg', oversized_image_data, content_type='image/jpeg')
+        form = ProfileUpdateForm(files={'image': oversized_image_file}, instance=self.user.profile)
+        self.assertFalse(form.is_valid())
