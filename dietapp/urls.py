@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import (
     JournalListView,
     JournalDetailView,
@@ -16,6 +16,7 @@ from .views import (
     sent_messages,
 )
 from . import views
+from django.contrib import admin
 
 urlpatterns = [
     # Journal-related views
@@ -43,4 +44,10 @@ urlpatterns = [
     # Static pages
     path('about/', views.about, name='dietapp-about'),  # About page
     path('contact/', views.contact, name='dietapp-contact'),  # Contact page
+
+    # Admin panel
+    path('admin/', admin.site.urls),  # Admin site
+
+    # Polls app (optional)
+    path('polls/', include('polls.urls')),  # This assumes polls/urls.py exists
 ]
