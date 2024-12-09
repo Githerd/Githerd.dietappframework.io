@@ -8,18 +8,14 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import User, Meal, Vitamin, Exercise, Weekly, JournalEntry, TDEE, Message, UserProfile
-from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm, ContactForm, VitaminForm
+from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm, ContactForm, VitaminForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 from django.utils.timezone import now
-from django.shortcuts import render
 from django.core.mail import send_mail
 from django.forms import inlineformset_factory
-from django.shortcuts import render, redirect
-from django.contrib import messages  # For flash messages
-from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import View
-from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, TDEEForm
-from .models import Weekly, Meals
+from .models import Weekly, TDEE, Meal, Exercise
+
 
 # Helper function for calculating total calories
 def calculate_total_calories(weekly_meals):
@@ -29,63 +25,51 @@ def calculate_total_calories(weekly_meals):
     return sum(entry.meal.calories for entry in weekly_meals)
 
 
-class TDEEView(View):
+
+class TDEEView(LoginRequiredMixin, TemplateView):
     """
-    Handles GET and POST requests for TDEE calculation.
+    View to calculate and display the Total Daily Energy Expenditure (TDEE).
     """
-    def get(self, request):
-        form = TDEEForm()
-        return render(request, 'dietapp/tdee.html', {'form': form})
+    template_name = 'dietapp/tdee.html'
 
-    def post(self, request):
-        form = TDEEForm(request.POST)
-        tdee_result = None
-        if form.is_valid():
-            # Extract form data
-            weight = form.cleaned_data['weight']
-            height = form.cleaned_data['height']
-            age = form.cleaned_data['age']
-            gender = form.cleaned_data['gender']
-            activity_level = form.cleaned_data['activity_level']
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get the user's TDEE record, if available
+        tdee_record = TDEE.objects.filter(user=self.request.user).first()
+        context['tdee'] = tdee_record.calories if tdee_record else 0
 
-            # TDEE calculation
-            gender_factor = 5 if gender == "male" else -161
-            activity_multipliers = [1.2, 1.375, 1.55, 1.725, 1.9]
-            activity_multiplier = activity_multipliers[int(activity_level) - 1]
-            tdee_result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_factor) * activity_multiplier
-
-        return render(request, 'dietapp/tdee.html', {'form': form, 'tdee_result': tdee_result})
+        return context
 
 
-@method_decorator(login_required, name='dispatch')
-class WeeklyCaloriesView(View):
+class WeeklyCaloriesView(LoginRequiredMixin, TemplateView):
     """
-    Handles weekly calories tracking for logged-in users.
+    View to track and display weekly calorie intake and burned calories.
     """
-    def get(self, request):
-        user = request.user
-        weekly_meals = Weekly.objects.filter(user=user)
-        total_calories = calculate_total_calories(weekly_meals)
-        return render(request, 'dietapp/weekly_calories.html', {
-            'weekly_meals': weekly_meals,
-            'total_calories': total_calories
-        })
+    template_name = 'dietapp/weekly_calories.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-def register(request):
-    """
-    Handles user registration.
-    """
-    if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'The account {username} was created successfully. You can now log in.')
-            return redirect('login')
-    else:
-        form = UserRegisterForm()
-    return render(request, 'users/register.html', {'form': form})
+        # Get current user's meals and exercises for the current week
+        current_week = now().isocalendar()[1]  # Get current week number
+        user = self.request.user
+
+        weekly_meals = Meal.objects.filter(user=user, date__week=current_week)
+        weekly_exercises = Exercise.objects.filter(user=user, date__week=current_week)
+
+        # Calculate total calories intake and burned
+        total_calories_intake = sum(meal.calories for meal in weekly_meals)
+        total_calories_burned = sum(exercise.calories_burned for exercise in weekly_exercises)
+
+        # Add data to context
+        context['weekly_meals'] = weekly_meals
+        context['weekly_exercises'] = weekly_exercises
+        context['total_calories_intake'] = total_calories_intake
+        context['total_calories_burned'] = total_calories_burned
+
+        return context
+
 
 
 @login_required
