@@ -48,6 +48,10 @@
 
     <hr class="my-5">
 
+    <h1>Weekly Calorie Tracker</h1>
+<p>Total Calories Consumed: {{ total_calories_intake }} kcal</p>
+<p>Total Calories Burned: {{ total_calories_burned }} kcal</p>
+
     <!-- Exercise Tracking Section -->
     <h3 class="text-center" style="color: #003C5F;">Track Your Workouts</h3>
     <form id="exerciseForm" method="post" action="{% url 'add_exercise' %}">
@@ -152,4 +156,5 @@
 
     {% endif %}
 </div>
+<script src="{% static 'js/calculateCalories.js' %}"></script>
 {% endblock %}
