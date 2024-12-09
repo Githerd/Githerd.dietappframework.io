@@ -10,6 +10,7 @@ from .models import (
     HealthData,
     Weekly,
     Message,
+    TDEE,
     JournalEntry
 )
 
@@ -24,4 +25,5 @@ admin.site.register(Exercise)
 admin.site.register(HealthData)
 admin.site.register(Weekly)
 admin.site.register(Message)
+admin.site.register(TDEE)
 admin.site.register(JournalEntry)
