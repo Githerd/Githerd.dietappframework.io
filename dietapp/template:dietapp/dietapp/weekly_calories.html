@@ -1,0 +1,54 @@
+{% extends "dietapp/base.html" %}
+
+{% block title %}Weekly Calorie Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mt-4" style="color: #003C5F;">Weekly Calorie Tracker</h1>
+    <p class="text-center">Track your weekly calorie intake and expenditure</p>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h4 class="text-center">Calorie Intake</h4>
+            <ul class="list-group">
+                {% for meal in weekly_meals %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ meal.name }}</span>
+                    <span>{{ meal.calories }} kcal</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center">No meals logged for this week.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h4 class="text-center">Calorie Burn</h4>
+            <ul class="list-group">
+                {% for exercise in weekly_exercises %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ exercise.name }} ({{ exercise.duration }} mins)</span>
+                    <span>{{ exercise.calories_burned }} kcal</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center">No exercises logged for this week.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Weekly Summary</h5>
+                    <p class="card-text">
+                        Total Calories Intake: <strong>{{ total_calories_intake }}</strong> kcal<br>
+                        Total Calories Burned: <strong>{{ total_calories_burned }}</strong> kcal<br>
+                        Net Calories: <strong>{{ total_calories_intake|add:-total_calories_burned }}</strong> kcal
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
