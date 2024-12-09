@@ -1,41 +1,65 @@
 {% extends 'dietapp/base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <h2>Send a Message</h2>
 
-    <!-- Display errors if any -->
-    {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
+<hr class="my-5">
 
-    <!-- Message Form -->
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="receiver">Recipient Username:</label>
-            <input type="text" name="receiver" class="form-control" placeholder="Enter recipient's username" required>
+<!-- Messaging Section -->
+<h3 class="text-center" style="color: #003C5F;">Messaging</h3>
+
+<!-- Send a Message -->
+<h4 class="text-center" style="color: #007EC7;">Send a Message</h4>
+<form method="post" action="{% url 'send_message' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="receiver" class="font-weight-bold">Recipient Username</label>
+        <input type="text" class="form-control" name="receiver" id="receiver" placeholder="Enter recipient username" required>
+    </div>
+    <div class="form-group">
+        <label for="content" class="font-weight-bold">Message Content</label>
+        <textarea class="form-control" name="content" id="content" rows="3" placeholder="Write your message here..." required></textarea>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary">Send Message</button>
+    </div>
+</form>
+
+<hr class="my-5">
+
+<!-- Inbox -->
+<h4 class="text-center" style="color: #007EC7;">Inbox</h4>
+{% if inbox_messages %}
+<ul class="list-group">
+    {% for message in inbox_messages %}
+    <li class="list-group-item">
+        <div>
+            <strong>From:</strong> {{ message.sender.username }}<br>
+            <strong>Message:</strong> {{ message.content }}<br>
+            <small class="text-muted">{{ message.timestamp|date:"M d, Y H:i" }}</small>
         </div>
-        <div class="form-group mt-3">
-            <label for="content">Message:</label>
-            <textarea name="content" class="form-control" rows="5" placeholder="Type your message here..." required></textarea>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-center text-muted">No messages in your inbox.</p>
+{% endif %}
+
+<hr class="my-5">
+
+<!-- Sent Messages -->
+<h4 class="text-center" style="color: #007EC7;">Sent Messages</h4>
+{% if sent_messages %}
+<ul class="list-group">
+    {% for message in sent_messages %}
+    <li class="list-group-item">
+        <div>
+            <strong>To:</strong> {{ message.receiver.username }}<br>
+            <strong>Message:</strong> {{ message.content }}<br>
+            <small class="text-muted">{{ message.timestamp|date:"M d, Y H:i" }}</small>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Send Message</button>
-    </form>
-
-    <hr class="my-5">
-
-    <!-- Sent Messages Section -->
-    <h3>Sent Messages</h3>
-    <ul class="list-group">
-        {% for message in messages %}
-            <li class="list-group-item">
-                <strong>To:</strong> {{ message.receiver.username }}<br>
-                <strong>Sent:</strong> {{ message.timestamp|date:"M d, Y H:i" }}<br>
-                <p>{{ message.content }}</p>
-            </li>
-        {% empty %}
-            <li class="list-group-item">No messages sent yet.</li>
-        {% endfor %}
-    </ul>
-</div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-center text-muted">You haven't sent any messages yet.</p>
+{% endif %}
 {% endblock %}
