@@ -1,13 +1,5 @@
 from django.urls import path
-from .views import (
-    JournalListView,
-    JournalDetailView,
-    JournalCreateView,
-    JournalUpdateView,
-    JournalDeleteView,
-    TDEEView,
-    WeeklyCaloriesView,
-)
+from .models import User, Meal, Weekly, JournalEntry, TDEE, Message, UserProfile
 from . import views
 
 urlpatterns = [
