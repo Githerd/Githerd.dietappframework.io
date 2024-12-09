@@ -3,8 +3,9 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.contrib.auth.models import AbstractUser
-from django.utils.timezone import now, timedelta
+from django.utils.timezone import now
 from PIL import Image
+
 
 # Utility function for user file upload paths
 def user_directory_path(instance, filename):
@@ -80,8 +81,9 @@ class Meal(models.Model):
         return reverse('meal-detail', kwargs={'pk': self.pk})
 
 
+# Carbs Model
 class Carbs(models.Model):
-    name = models.TextField(max_length=50)
+    name = models.CharField(max_length=50)
     gfat = models.PositiveIntegerField(default=0)
     gcarb = models.PositiveIntegerField(default=0)
     gprotein = models.PositiveIntegerField(default=0)
@@ -90,30 +92,36 @@ class Carbs(models.Model):
         return self.name
 
 
+# Fats Model
 class Fats(models.Model):
     name = models.CharField(max_length=100)
     fat_content = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Fat Content (g)")
-    
+
     def __str__(self):
         return self.name
 
+
+# Proteins Model
 class Proteins(models.Model):
-	name = models.TextField(max_length=50)
-	gfat = models.PositiveIntegerField(default=0)
-	gcarb = models.PositiveIntegerField(default=0)
-	gprotein = models.PositiveIntegerField(default=0)
+    name = models.CharField(max_length=50)
+    gfat = models.PositiveIntegerField(default=0)
+    gcarb = models.PositiveIntegerField(default=0)
+    gprotein = models.PositiveIntegerField(default=0)
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
 
+
+# Drinks Model
 class Drinks(models.Model):
-	name = models.TextField(max_length=50)
-	gfat = models.PositiveIntegerField(default=0)
-	gcarb = models.PositiveIntegerField(default=0)
-	gprotein = models.PositiveIntegerField(default=0)
+    name = models.CharField(max_length=50)
+    gfat = models.PositiveIntegerField(default=0)
+    gcarb = models.PositiveIntegerField(default=0)
+    gprotein = models.PositiveIntegerField(default=0)
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
+
 
 # Vitamins for Meals
 class Vitamin(models.Model):
@@ -163,12 +171,14 @@ EXERCISE_TYPE_CHOICES = [
     ('strength', 'Strength'),
 ]
 
+
 class Exercise(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=50, choices=EXERCISE_TYPE_CHOICES)
     duration = models.IntegerField(validators=[MinValueValidator(0)], help_text="Duration in minutes")
     calories_burned = models.FloatField(validators=[MinValueValidator(0)])
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-date']
