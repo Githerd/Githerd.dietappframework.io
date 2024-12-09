@@ -7,13 +7,6 @@ from .views import (
     JournalDeleteView,
     TDEEView,
     WeeklyCaloriesView,
-    single_meal,
-    delete_meal,
-    weekly_plan,
-    delete_weekly_plan,
-    send_message,
-    inbox,
-    sent_messages,
 )
 from . import views
 from django.contrib import admin
