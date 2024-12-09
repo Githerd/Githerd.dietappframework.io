@@ -16,6 +16,16 @@ from .models import (
 )
 
 
+class ProfileUpdateForm(forms.ModelForm):
+    """
+    Form for updating additional user profile information.
+    """
+    class Meta:
+        model = UserProfile  # Directly reference the model
+        fields = ['image', 'age', 'height', 'weight', 'goal']
+        widgets = {
+            'goal': forms.Select(attrs={'class': 'form-control'}),
+        }
 
 # Registration Form
 class ContactForm(forms.Form):
@@ -27,6 +37,14 @@ class ContactForm(forms.Form):
         label="Your Message"
     )
 
+
+
+
+# User Profile Form
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['age', 'height', 'weight', 'dietary_preferences']
 
 
 class RegisterForm(UserCreationForm):
@@ -55,14 +73,7 @@ class UserRegisterForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise ValidationError(_("A user with this email already exists."))
         return email
-
-
-# User Profile Form
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ['age', 'height', 'weight', 'dietary_preferences']
-
+        
 
 # Meal Form
 class MealForm(forms.ModelForm):
