@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.timezone import now
 from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator
@@ -8,16 +7,15 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import User
 from PIL import Image
-
-
 from django.views.generic import TemplateView
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.timezone import now, timedelta
 from .forms import TDEEForm
 from .models import Profile, Meal
-from django.contrib.auth.models import AbstractUser
-from django.db import models
+
+
+User = get_user_model()
 
 
 class User(AbstractUser):
