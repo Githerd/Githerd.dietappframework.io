@@ -1,18 +1,7 @@
 from django.contrib import admin
 from .models import (
-    User,
-    Carbs,
-    Fats,
-    Proteins,
-    Drinks,
-    Meal,
-    Meals,
-    Exercise,
-    HealthData,
-    Weekly,
-    Message,
-    TDEE,
-    JournalEntry
+    Meal, Carbs, Drinks, Fats, Meals, Vitamins, Proteins,
+    User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
 )
 
 # Register your models
@@ -26,6 +15,6 @@ admin.site.register(Meals)
 admin.site.register(Exercise)
 admin.site.register(HealthData)
 admin.site.register(Weekly)
-admin.site.register(Message)
 admin.site.register(TDEE)
 admin.site.register(JournalEntry)
+admin.site.register(Profile)  # Ensure Profile is registered
