@@ -8,8 +8,40 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import User, Meal, Exercise, Weekly, JournalEntry, TDEE, Message, UserProfile
-from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm
+from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm, ContactForm
 from django.utils.timezone import now
+from django.shortcuts import render
+from django.core.mail import send_mail
+
+
+# ========== Views ==========
+def contact(request):
+    """Render a contact form and handle form submission."""
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # Extract data from form
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+
+            # Send email (configure your email settings in settings.py)
+            send_mail(
+                subject=f"Contact Form Inquiry from {name}",
+                message=message,
+                from_email=email,
+                recipient_list=['your_email@example.com'],  # Replace with your email
+                fail_silently=False,
+            )
+            messages.success(request, "Your message has been sent successfully!")
+            return render(request, 'dietapp/contact.html', {'form': ContactForm()})  # Render empty form after success
+        else:
+            messages.error(request, "There was an error in your form. Please try again.")
+
+
+def about(request):
+    """Render the About page."""
+    return render(request, 'dietapp/about.html')
 
 
 # ========== User Management ==========
@@ -56,9 +88,36 @@ def logout_view(request):
 # ========== Dashboard ==========
 @login_required
 def dashboard(request):
-    """Display the user's dashboard with their profile details."""
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-    return render(request, 'dietapp/dashboard.html', {'user': user_profile})
+    """Display the user's dashboard with health data, meals, and activities."""
+    # Get the logged-in user's profile
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    # Fetch meals created by the user
+    meals = Meal.objects.filter(user=request.user).order_by('-date')[:5]  # Limit to 5 recent meals
+
+    # Fetch TDEE information for the user
+    tdee = TDEE.objects.filter(user=request.user).order_by('-date').first()
+
+    # Fetch exercises logged by the user
+    exercises = Exercise.objects.filter(user=request.user, date__week=now().isocalendar()[1])
+
+    # Calculate total calories burned from exercises
+    total_calories_burned = sum(exercise.calories_burned for exercise in exercises)
+
+    # Calculate BMI
+    bmi = user_profile.bmi
+
+    # Pass data to the template
+    context = {
+        'user_profile': user_profile,
+        'meals': meals,
+        'tdee': tdee.calories if tdee else None,
+        'exercises': exercises,
+        'total_calories_burned': total_calories_burned,
+        'bmi': bmi,
+    }
+
+    return render(request, 'dietapp/dashboard.html', context)
 
 
 # ========== TDEE Calculator ==========
