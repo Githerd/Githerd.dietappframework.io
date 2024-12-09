@@ -7,8 +7,8 @@ from django.contrib.auth.models import User, AbstractUser
 from django.contrib.auth import get_user_model
 
 
-class User(AbstractUser):
-    pass
+User = get_user_model()
+
 
 # Choices
 EXERCISE_TYPE_CHOICES = [
