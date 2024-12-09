@@ -9,7 +9,6 @@ from .views import (
     WeeklyCaloriesView,
 )
 from . import views
-from django.contrib import admin
 
 urlpatterns = [
     # ========== Journal Management ==========
