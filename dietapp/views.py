@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -11,6 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from .models import User, Meals, Weekly, JournalEntry, TDEE, Message, UserProfile
 from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm
+
 
 # ========== User Management ==========
 def register(request):
@@ -128,11 +129,22 @@ def single_meal(request):
     if request.method == "GET":
         meals = Meals.objects.filter(mealcreator=request.user)
         return render(request, "dietapp/single_meal.html", {"meals": meals})
-
-    if request.method == "POST":
-        # Logic to add meals
-        ...
+    elif request.method == "POST":
+        form = MealForm(request.POST)
+        if form.is_valid():
+            meal = form.save(commit=False)
+            meal.mealcreator = request.user
+            meal.save()
         return redirect('single_meal')
+
+
+@login_required
+def delete_meal(request, meal_id):
+    """Delete a meal."""
+    meal = get_object_or_404(Meals, id=meal_id, mealcreator=request.user)
+    meal.delete()
+    messages.success(request, "Meal deleted successfully.")
+    return redirect('single_meal')
 
 
 # ========== Weekly Planning ==========
@@ -146,8 +158,46 @@ def weekly_plan(request):
         percentages = calculate_percentage(macros)
         context = {"meals": meals, "weekly_meals": weekly_meals, "macros": macros, "percentages": percentages}
         return render(request, "dietapp/weekly_plan.html", context)
-
-    if request.method == "POST":
-        # Logic to handle weekly meal addition
-        ...
+    elif request.method == "POST":
+        day = request.POST.get("day")
+        meal_id = request.POST.get("meal_id")
+        meal = get_object_or_404(Meals, id=meal_id, mealcreator=request.user)
+        Weekly.objects.create(day=day, meal=meal, mealuser=request.user)
         return redirect('weekly_plan')
+
+
+@login_required
+def delete_weekly_plan(request, weekly_id):
+    """Delete a meal from the weekly plan."""
+    weekly_entry = get_object_or_404(Weekly, id=weekly_id, mealuser=request.user)
+    weekly_entry.delete()
+    messages.success(request, "Meal removed from the weekly plan.")
+    return redirect('weekly_plan')
+
+
+# ========== Utility Functions ==========
+def calculate_macros(weekly_meals):
+    """Calculate average macros for the weekly meals."""
+    weekly_fat = sum(meal.meal.totalfat for meal in weekly_meals)
+    weekly_carb = sum(meal.meal.totalcarb for meal in weekly_meals)
+    weekly_protein = sum(meal.meal.totalprotein for meal in weekly_meals)
+    weekly_calories = sum(meal.meal.calories for meal in weekly_meals)
+
+    return {
+        "average_fat": round(weekly_fat / 7),
+        "average_carb": round(weekly_carb / 7),
+        "average_protein": round(weekly_protein / 7),
+        "average_calories": round(weekly_calories / 7),
+    }
+
+
+def calculate_percentage(macros):
+    """Calculate the percentage distribution of macros."""
+    total_calories = macros["average_calories"]
+    if total_calories == 0:
+        return {"fat": 33, "carb": 33, "protein": 33}
+    return {
+        "fat": round((macros["average_fat"] * 9 / total_calories) * 100),
+        "carb": round((macros["average_carb"] * 4 / total_calories) * 100),
+        "protein": round((macros["average_protein"] * 4 / total_calories) * 100),
+    }
