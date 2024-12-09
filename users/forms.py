@@ -5,6 +5,10 @@ from django.contrib.auth.forms import UserCreationForm #Inheritance Relationship
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django.apps import apps
+from django.shortcuts import render, redirect
+from .forms import ProfileUpdateForm
+from django.contrib.auth.decorators import login_required
+
 User = get_user_model()
 
 class UserRegisterForm(UserCreationForm):
@@ -34,3 +38,17 @@ class ProfileUpdateForm(forms.ModelForm):
         widgets = {
             'goal': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+
+@login_required
+def profile_update(request):
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated!')
+            return redirect('profile')  # Redirect to a profile page
+    else:
+        form = ProfileUpdateForm(instance=request.user.profile)
+    return render(request, 'users/profile_update.html', {'form': form})
