@@ -1,12 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.decorators import login_required
-from django.urls import reverse, reverse_lazy
-from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.utils.timezone import now
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from .models import User, Meals, Weekly, JournalEntry, TDEE, Message, UserProfile
@@ -79,7 +78,7 @@ def tdee_calculate(request):
             result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
     else:
         form = TDEEForm()
-    return render(request, "dietapp/TDEE.html", {"form": form, "result": result})
+    return render(request, "dietapp/tdee.html", {"form": form, "result": result})
 
 
 # ========== Journal Management ==========
@@ -116,7 +115,7 @@ class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = JournalEntry
     template_name = 'dietapp/journal_confirm_delete.html'
-    success_url = reverse_lazy('journal-list')
+    success_url = reverse_lazy('dietapp-home')
 
     def test_func(self):
         return self.request.user == self.get_object().author
@@ -135,6 +134,9 @@ def single_meal(request):
             meal = form.save(commit=False)
             meal.mealcreator = request.user
             meal.save()
+            messages.success(request, "Meal added successfully.")
+        else:
+            messages.error(request, "There was an error adding the meal.")
         return redirect('single_meal')
 
 
@@ -163,6 +165,7 @@ def weekly_plan(request):
         meal_id = request.POST.get("meal_id")
         meal = get_object_or_404(Meals, id=meal_id, mealcreator=request.user)
         Weekly.objects.create(day=day, meal=meal, mealuser=request.user)
+        messages.success(request, f"Meal added to {day}.")
         return redirect('weekly_plan')
 
 
