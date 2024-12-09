@@ -7,6 +7,28 @@ from crispy_forms.layout import Submit
 from .models import UserProfile
 
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile_image")
+    image = models.ImageField(default='default.jpg', upload_to=user_directory_path)
+
+    def __str__(self):
+        return f'{self.user.username} Profile Image'
+
+    def save(self, *args, **kwargs):
+        """Resize the image to reduce file size and maintain uniformity."""
+        super().save(*args, **kwargs)
+
+        try:
+            img = Image.open(self.image.path)
+            if img.height > 300 or img.width > 300:
+                output_size = (300, 300)
+                img.thumbnail(output_size)
+                img.save(self.image.path)
+        except Exception as e:
+            # Log the error or handle it as per your requirements
+            pass
+
+
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
 
