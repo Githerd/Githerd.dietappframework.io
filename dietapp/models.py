@@ -86,6 +86,19 @@ class Exercise(models.Model):
         return f"{self.name} ({self.calories_burned} kcal)"
 
 
+#TDEE
+class TDEE(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee")
+    calories = models.PositiveIntegerField(default=0, verbose_name="Calories")
+    date = models.DateField(auto_now_add=True, verbose_name="Date Recorded")
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"TDEE for {self.user.username}: {self.calories} kcal"
+
+
 # Health Data
 class HealthData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="health_data")
