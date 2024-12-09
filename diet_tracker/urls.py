@@ -37,13 +37,13 @@ urlpatterns = [
          auth_views.PasswordResetCompleteView.as_view(template_name='users/password_reset_complete.html'), 
          name='password_reset_complete'),
 
-    # App-specific routes
+    # Application routes
     path('', include('dietapp.urls')),  # Default homepage routes
-    path('dietapp/', include('dietapp.urls')),  # DietApp routes
+    path('dietapp/', include('dietapp.urls')),  # DietApp-specific routes
     path('polls/', include('polls.urls')),  # Polls app routes
-    path('users/', include('users.urls')),  # Users app routes
+    path('users/', include('users.urls')),  # Users app-specific routes
 ]
 
-# Media files handling for development
+# Media files handling during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
