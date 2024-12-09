@@ -8,24 +8,12 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import Meal, UserProfile, DietApp, JournalEntry
+from .models import Meal, UserProfile, JournalEntry, DietApp
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 
-class MealForm(forms.ModelForm):
-    class Meta:
-        model = Meal
-        fields = ['name', 'calories', 'date']
-
-
-class UserProfileForm(forms.ModelForm):
-    """Form for updating user profile details."""
-    class Meta:
-        model = UserProfile
-        fields = ['image', 'age', 'height', 'weight', 'goal']
-
-
+# ===================== User Forms =====================
 class UserRegisterForm(UserCreationForm):
     """
     Form for registering a new user with username, email, and password validation.
@@ -93,32 +81,27 @@ class UserUpdateForm(forms.ModelForm):
         return email
 
 
-class ProfileUpdateForm(forms.ModelForm):
+# ===================== Profile Forms =====================
+class UserProfileForm(forms.ModelForm):
     """
-    Form for updating additional user profile information.
+    Form for updating user profile details.
     """
     class Meta:
         model = UserProfile
-        fields = ['image', 'age', 'height', 'weight', 'goal']
-        widgets = {
-            'goal': forms.Select(attrs={'class': 'form-control'}),
-        }
-
-
-class DietAppForm(forms.ModelForm):
-    """
-    Form for managing DietApp-related data including activity level, dietary preferences, etc.
-    """
-    class Meta:
-        model = DietApp
-        fields = ['activity_level', 'dietary_preferences', 'food_allergies', 'goal']
+        fields = ['age', 'height', 'weight', 'dietary_preferences']
         widgets = {
             'dietary_preferences': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'food_allergies': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'goal': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
+# ===================== Meal Forms =====================
+class MealForm(forms.ModelForm):
+    class Meta:
+        model = Meal
+        fields = ['name', 'calories', 'protein', 'carbs', 'fat', 'description']
+
+
+# ===================== TDEE Calculator Form =====================
 class TDEEForm(forms.Form):
     weight = forms.FloatField(label="Weight (kg)", required=True)
     height = forms.FloatField(label="Height (cm)", required=True)
@@ -141,7 +124,11 @@ class TDEEForm(forms.Form):
     )
 
 
+# ===================== Journal Forms =====================
 class JournalEntryForm(forms.ModelForm):
+    """
+    Form for managing journal entries.
+    """
     class Meta:
         model = JournalEntry
         fields = ['title', 'content']
@@ -151,6 +138,7 @@ class JournalEntryForm(forms.ModelForm):
         }
 
 
+# ===================== Password Management Forms =====================
 class CustomPasswordResetForm(PasswordResetForm):
     """
     Form for initiating a password reset using the user's email address.
