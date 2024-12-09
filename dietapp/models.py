@@ -16,6 +16,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.timezone import now, timedelta
 from .forms import TDEEForm
 from .models import Profile, Meal
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.username
 
 
 # TDEEView
