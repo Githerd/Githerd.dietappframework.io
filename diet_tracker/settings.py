@@ -23,6 +23,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['githerd-dietappframework-io.onrender.com', 'localhost', '127.0.0.1']
 
+ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
@@ -78,9 +79,6 @@ DATABASES = {
         ssl_require=not DEBUG
     )
 }
-
-
-AUTH_USER_MODEL = 'dietapp.User'
 
 
 # Password validation
