@@ -1,14 +1,23 @@
 from django.urls import path, include
 from .views import (
+    TDEEView,
+    WeeklyCaloriesView,
     JournalListView,
     JournalDetailView,
     JournalCreateView,
     JournalUpdateView,
     JournalDeleteView,
-    TDEEView,
-    WeeklyCaloriesView,
+    send_message,
+    inbox,
+    sent_messages,
+    single_meal,
+    delete_meal,
+    weekly_plan,
+    delete_weekly_plan,
+    about,
+    contact,
 )
-from . import views
+from django.contrib import admin
 
 urlpatterns = [
     # ========== Journal Management ==========
@@ -34,8 +43,8 @@ urlpatterns = [
     path('meals/weekly/delete/<int:meal_id>/', delete_weekly_plan, name='delete-weekly-plan'),  # Remove meal from weekly plan
 
     # ========== Static Pages ==========
-    path('about/', views.about, name='dietapp-about'),  # About page
-    path('contact/', views.contact, name='dietapp-contact'),  # Contact page
+    path('about/', about, name='dietapp-about'),  # About page
+    path('contact/', contact, name='dietapp-contact'),  # Contact page
 
     # ========== Admin Panel ==========
     path('admin/', admin.site.urls),  # Django admin panel
