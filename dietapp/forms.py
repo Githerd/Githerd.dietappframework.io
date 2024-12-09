@@ -10,12 +10,22 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
+from django import forms
 from .models import (
     Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData
 )
 
 
-# User Registration Form
+
+# Registration Form
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+
+
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
 
