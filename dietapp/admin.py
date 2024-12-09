@@ -8,7 +8,6 @@ from .models import (
     Meal,
     Exercise,
     HealthData,
-    TDEE,
     Weekly,
     Message,
     JournalEntry
@@ -23,7 +22,6 @@ admin.site.register(Drinks)
 admin.site.register(Meal)
 admin.site.register(Exercise)
 admin.site.register(HealthData)
-admin.site.register(TDEE)
 admin.site.register(Weekly)
 admin.site.register(Message)
 admin.site.register(JournalEntry)
