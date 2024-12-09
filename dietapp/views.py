@@ -79,7 +79,7 @@ def tdee_calculate(request):
             result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
     else:
         form = TDEEForm()
-    return render(request, "dietapp/meal_plan.html", {"form": form, "result": result})
+    return render(request, "dietapp/TDEE.html", {"form": form, "result": result})
 
 
 # ========== Journal Management ==========
