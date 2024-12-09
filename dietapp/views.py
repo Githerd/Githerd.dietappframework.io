@@ -11,6 +11,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils import timezone
 from django.utils.timezone import now
+from .forms import TDEEForm
 
 
 # Basic Views
@@ -49,6 +50,28 @@ def register(request):
 def dashboard(request):
     user_profile = UserProfile.objects.get(user=request.user)
     return render(request, 'dietapp/dashboard.html', {'user': user_profile})
+
+
+def tdee_calculate(request):
+    result = None
+    if request.method == "POST":
+        form = TDEEForm(request.POST)
+        if form.is_valid():
+            weight = form.cleaned_data['weight']
+            height = form.cleaned_data['height']
+            age = form.cleaned_data['age']
+            gender = form.cleaned_data['gender']
+            activity_level = form.cleaned_data['activity_level']
+
+            # Gender constant: 5 for male, -161 for female
+            gender_value = 5 if gender == "male" else -161
+            activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
+
+            result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
+    else:
+        form = TDEEForm()
+
+    return render(request, "dietapp/tdee_calculate.html", {"form": form, "result": result})
 
 
 # Journal Management
