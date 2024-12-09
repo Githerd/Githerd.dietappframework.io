@@ -1,11 +1,13 @@
 {% extends "dietapp/base.html" %}
+
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center">Dashboard</h1>
     <p class="lead text-center">Here are your health details:</p>
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
+            <!-- User Details Card -->
+            <div class="card mb-4">
                 <div class="card-header text-center">
                     <h3>{{ user.name }}'s Dashboard</h3>
                 </div>
@@ -19,6 +21,20 @@
                         <li class="list-group-item"><strong>Calories Consumed:</strong> {{ user.calories_consumed }} kcal</li>
                         <li class="list-group-item"><strong>Calories Burned:</strong> {{ user.calories_burned }} kcal</li>
                     </ul>
+                </div>
+            </div>
+
+            <!-- Journal Section -->
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3>Your Journal</h3>
+                </div>
+                <div class="card-body">
+                    <p>Keep track of your progress and thoughts by managing your journal entries.</p>
+                    <div class="d-flex justify-content-center">
+                        <a href="{% url 'journal-list' %}" class="btn btn-primary mx-2">View Journal</a>
+                        <a href="{% url 'journal-create' %}" class="btn btn-success mx-2">New Entry</a>
+                    </div>
                 </div>
             </div>
         </div>
