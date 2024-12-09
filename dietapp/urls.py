@@ -49,4 +49,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),  # Django admin panel
 
     # ========== Polls App ==========
-    path('polls/', include('polls.urls')),  # Polls app URLs
+    path('polls/', include('polls.urls')),  # Polls app URLs (if applicable)
+]
