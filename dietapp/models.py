@@ -103,8 +103,8 @@ class Proteins(models.Model):
 	gcarb = models.PositiveIntegerField(default=0)
 	gprotein = models.PositiveIntegerField(default=0)
 
-    def __str__(self):
-        return self.name
+        def __str__(self):
+            return self.name
 
 class Drinks(models.Model):
 	name = models.TextField(max_length=50)
@@ -112,8 +112,8 @@ class Drinks(models.Model):
 	gcarb = models.PositiveIntegerField(default=0)
 	gprotein = models.PositiveIntegerField(default=0)
 
-    def __str__(self):
-        return self.name
+        def __str__(self):
+            return self.name
 
 # Vitamins for Meals
 class Vitamin(models.Model):
