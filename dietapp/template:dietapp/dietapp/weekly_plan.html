@@ -1,0 +1,155 @@
+{% extends "dietapp/base.html" %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="text-center" style="color: #003C5F;">Weekly Planner</h1>
+
+    <!-- User Authentication Check -->
+    {% if not user.is_authenticated %}
+    <div class="alert alert-primary text-center mt-4">
+        <p>
+            Only users who are <a href="{% url 'login' %}" class="alert-link">logged in</a> can create a weekly plan.
+        </p>
+        <p>
+            Don't have an account? <a href="{% url 'register' %}" class="alert-link">Register here</a>.
+        </p>
+    </div>
+    {% else %}
+
+    <!-- Meal Planning Section -->
+    <h3 class="text-center" style="color: #003C5F;">Select Your Daily Meals</h3>
+
+    {% if not all_meals %}
+    <div class="alert alert-primary text-center mt-4">
+        <p>
+            You don't currently have any meals saved.<br>
+            <a href="{% url 'singlemeal' %}" class="alert-link">Create your meals here</a>.
+        </p>
+    </div>
+    {% else %}
+    <form id="weeklyPlan" method="post" action="{% url 'weekly' %}">
+        {% csrf_token %}
+        {% for day in "Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split %}
+        <div class="form-group">
+            <label for="{{ day|lower }}" class="font-weight-bold">{{ day }}</label>
+            <div class="d-flex align-items-center">
+                <select class="form-control mr-3" name="meal_select" id="{{ day|lower }}-meal" style="width: 75%;">
+                    {% for meal in all_meals %}
+                    <option value="{{ meal.id }}">{{ meal.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="day" value="{{ day|lower }}">
+                <button type="submit" class="btn btn-outline-success">Add</button>
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+    {% endif %}
+
+    <hr class="my-5">
+
+    <!-- Exercise Tracking Section -->
+    <h3 class="text-center" style="color: #003C5F;">Track Your Workouts</h3>
+    <form id="exerciseForm" method="post" action="{% url 'add_exercise' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="workout_type" class="font-weight-bold">Workout Type</label>
+            <input type="text" class="form-control" name="workout_type" id="workout_type" placeholder="e.g., Running, Cycling" required>
+        </div>
+        <div class="form-group">
+            <label for="duration" class="font-weight-bold">Duration (minutes)</label>
+            <input type="number" class="form-control" name="duration" id="duration" placeholder="Enter workout duration" required>
+        </div>
+        <div class="form-group">
+            <label for="calories_burned" class="font-weight-bold">Calories Burned</label>
+            <input type="number" class="form-control" name="calories_burned" id="calories_burned" placeholder="Enter calories burned" required>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Add Workout</button>
+        </div>
+    </form>
+
+    <hr class="my-5">
+
+    <!-- Weekly Plan Summary -->
+    <h3 class="text-center" style="color: #003C5F;">Weekly Plan</h3>
+    {% for day in "Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split %}
+    <div class="card my-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ day }}</h5>
+            <div>
+                {% for meal in weekly_meals %}
+                {% if meal.day == day|lower %}
+                <div class="d-flex justify-content-between">
+                    <span>{{ meal.meal.name }} - {{ meal.meal.calories }} kcal</span>
+                    <form method="post" action="{% url 'deletefromplan' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="mealtodelete" value="{{ meal.meal.id }}">
+                        <input type="hidden" name="daydelete" value="{{ day|lower }}">
+                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                    </form>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <hr class="my-5">
+
+    <!-- Workout Summary -->
+    <h3 class="text-center" style="color: #003C5F;">Workouts Summary</h3>
+    {% if workouts %}
+    <ul class="list-group">
+        {% for workout in workouts %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <strong>{{ workout.workout_type }}</strong> - {{ workout.duration }} mins, {{ workout.calories_burned }} kcal burned
+            </div>
+            <form method="post" action="{% url 'delete_exercise' %}">
+                {% csrf_token %}
+                <input type="hidden" name="workout_id" value="{{ workout.id }}">
+                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-center text-muted">No workouts recorded yet.</p>
+    {% endif %}
+
+    <hr class="my-5">
+
+    <!-- Macros Summary -->
+    <h3 class="text-center" style="color: #003C5F;">Daily Average Macros</h3>
+    <div class="text-center">
+        <p><strong>Calories:</strong> {{ macros.average_calories }} kcal</p>
+        <p><strong>Fat:</strong> {{ macros.average_fat }} g</p>
+        <p><strong>Carbs:</strong> {{ macros.average_carb }} g</p>
+        <p><strong>Protein:</strong> {{ macros.average_protein }} g</p>
+    </div>
+
+    <h4 class="text-center" style="color: #003C5F;">Macro Percentage</h4>
+    <div style="max-width: 400px; margin: auto;">
+        <canvas id="macroChart"></canvas>
+        <script>
+            const macroData = {
+                labels: ['Fat', 'Carbs', 'Protein'],
+                datasets: [{
+                    label: 'Macro Percentage',
+                    data: [{{ percentage.fat }}, {{ percentage.carb }}, {{ percentage.protein }}],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                }]
+            };
+            const config = {
+                type: 'doughnut',
+                data: macroData,
+            };
+            new Chart(document.getElementById('macroChart'), config);
+        </script>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
