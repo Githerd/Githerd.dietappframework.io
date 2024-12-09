@@ -10,7 +10,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from .models import User, Meal, Exercise, Weekly, JournalEntry, TDEE, Message, UserProfile
 from .forms import RegisterForm, UserProfileForm, MealForm, JournalEntryForm, TDEEForm
-from django.views.generic import TemplateView
 from django.utils.timezone import now
 
 
