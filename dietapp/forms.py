@@ -1,28 +1,19 @@
 from django import forms
-from django.contrib.auth.forms import (
-    UserCreationForm,
-    AuthenticationForm,
-    PasswordResetForm,
-    SetPasswordForm,
-)
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
-from django import forms
-from .models import (
-    Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
-)
-from django import forms
+from .models import Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm #Inheritance Relationship
-
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django.apps import apps
-from .models import Profile  # Directly import the Profile model
-
+from django.views.generic import FormView, TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from .forms import TDEEForm
+from django.utils.timezone import now
 
 User = get_user_model()
 
@@ -191,6 +182,60 @@ class TDEEForm(forms.Form):
         label="Activity Level",
         required=True
     )
+
+
+class TDEEView(LoginRequiredMixin, FormView):
+    template_name = "dietapp/tdee.html"
+    form_class = TDEEForm
+    success_url = reverse_lazy("tdee")  # Redirect back to TDEE page on success
+
+    def form_valid(self, form):
+        weight = form.cleaned_data['weight']
+        height = form.cleaned_data['height']
+        age = form.cleaned_data['age']
+        gender = form.cleaned_data['gender']
+        activity_level = form.cleaned_data['activity_level']
+
+        # Calculate TDEE
+        gender_value = 5 if gender == "male" else -161
+        activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
+        tdee_value = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
+
+        # Save the TDEE to the database
+        TDEE.objects.update_or_create(
+            user=self.request.user,
+            defaults={'calories': tdee_value}
+        )
+
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tdee_record = TDEE.objects.filter(user=self.request.user).first()
+        context['tdee'] = tdee_record.calories if tdee_record else 0
+        return context
+
+
+# Weekly Calories
+class WeeklyCaloriesView(LoginRequiredMixin, TemplateView):
+    template_name = "dietapp/weekly_calories.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get the current week's meals and exercises
+        current_week = now().isocalendar()[1]
+        weekly_meals = Meal.objects.filter(user=self.request.user, date__week=current_week)
+        weekly_exercises = Exercise.objects.filter(user=self.request.user, date__week=current_week)
+        
+        # Calculate total calories
+        total_calories_intake = sum(meal.calories for meal in weekly_meals)
+        total_calories_burned = sum(exercise.calories_burned for exercise in weekly_exercises)
+        
+        context['total_calories_intake'] = total_calories_intake
+        context['total_calories_burned'] = total_calories_burned
+        context['calories_net'] = total_calories_intake - total_calories_burned  # Net calories
+        return context
 
 
 # Health Data Form
