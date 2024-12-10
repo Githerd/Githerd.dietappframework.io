@@ -9,7 +9,10 @@ from django.db.models import TextChoices
 
 User = get_user_model()  # Ensures compatibility with custom user models
 
-
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    pass
+    
 # Abstract Food Components Model
 class FoodComponent(models.Model):
     name = models.CharField(max_length=50)
