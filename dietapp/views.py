@@ -1,17 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.utils.timezone import now
+from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from dietapp.models import Meal  # If Meal is defined in dietapp
-from users.models import UserProfile
 
-from .models import Meal, Carbs, Drinks, Fats, Meals, Vitamins, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
-from .forms import TDEEForm, MealForm, UserProfileForm, TDEEForm, JournalEntryForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, ContactForm, RegisterForm, MealForm, CustomPasswordResetForm, HealthDataForm, WeeklyCaloriesView, TDEEView, TDEEForm, JournalEntryForm, WeeklyMealForm, ExerciseForm, MineralForm, VitaminForm
+from .models import (
+    Meals,
+    Exercise,
+    Weekly,
+    TDEE,
+    UserProfile,
+    JournalEntry,
+)
+from .forms import (
+    MealForm,
+    TDEEForm,
+    UserProfileForm,
+)
 
 
 # ========== Static Pages ==========
@@ -49,7 +57,7 @@ def singlemeal(request):
         form = MealForm(request.POST)
         if form.is_valid():
             meal = form.save(commit=False)
-            meal.user = request.user
+            meal.mealcreator = request.user
             meal.save()
             messages.success(request, "Meal successfully added!")
             return redirect('singlemeal')
