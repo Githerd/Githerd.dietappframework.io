@@ -11,9 +11,6 @@ from users.models import (
     JournalEntry,
     Message,
 )
-
-class User(AbstractUser):
-    pass
     
 # Custom Admin for Profile
 @admin.register(Profile)
