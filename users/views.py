@@ -27,13 +27,15 @@ def register(request):
 
 @login_required
 def profile(request):
-    """Display and update user profile."""
     if request.method == 'POST':
-        profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
-        if profile_form.is_valid():
-            profile_form.save()
-            messages.success(request, "Your profile has been updated.")
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile_image)
+        if u_form.is_valid() and p_form.is_valid():
+            u_form.save()
+            p_form.save()
+            messages.success(request, 'Your profile has been updated!')
             return redirect('profile')
     else:
-        profile_form = UserProfileForm(instance=request.user.profile)
-    return render(request, 'users/profile.html', {'profile_form': profile_form})
+        u_form = UserUpdateForm(instance=request.user)
+        p_form = ProfileUpdateForm(instance=request.user.profile_image)
+    return render(request, 'users/profile.html', {'u_form': u_form, 'p_form': p_form})
