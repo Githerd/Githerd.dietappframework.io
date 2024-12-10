@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from .models import Meal, Mineral, Vitamin
+
 
 User = get_user_model()
 
@@ -152,12 +154,38 @@ class Meal(models.Model):
         }
 
 
+
 class MealForm(forms.ModelForm):
+    class Meta:
+        model = Meal
+        fields = ['name', 'calories', 'protein', 'carbs', 'fat', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
     def clean_calories(self):
         calories = self.cleaned_data.get('calories')
-        if calories < 0:
+        if calories is not None and calories < 0:
             raise ValidationError("Calories cannot be negative.")
         return calories
+
+    def clean_protein(self):
+        protein = self.cleaned_data.get('protein')
+        if protein is not None and protein < 0:
+            raise ValidationError("Protein cannot be negative.")
+        return protein
+
+    def clean_carbs(self):
+        carbs = self.cleaned_data.get('carbs')
+        if carbs is not None and carbs < 0:
+            raise ValidationError("Carbohydrates cannot be negative.")
+        return carbs
+
+    def clean_fat(self):
+        fat = self.cleaned_data.get('fat')
+        if fat is not None and fat < 0:
+            raise ValidationError("Fat cannot be negative.")
+        return fat
 
 
 
