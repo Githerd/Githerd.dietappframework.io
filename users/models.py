@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
 from PIL import Image
 
@@ -7,9 +7,18 @@ from PIL import Image
 def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
 
+
+class CustomUser(AbstractUser):
+    """Custom User Model extending AbstractUser."""
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return self.username
+
+
 # Profile Model
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
     image = models.ImageField(
         default='default.jpg',
         upload_to=user_directory_path,
@@ -24,9 +33,7 @@ class Profile(models.Model):
         return f'{self.user.username} Profile'
 
     def save(self, *args, **kwargs):
-        """
-        Override save method to resize image before saving.
-        """
+        """Override save method to resize image before saving."""
         super().save(*args, **kwargs)
 
         img = Image.open(self.image.path)
@@ -37,6 +44,7 @@ class Profile(models.Model):
 
     @property
     def bmi(self):
+        """Calculate BMI."""
         if self.height and self.weight:
             height_in_meters = self.height / 100
             return round(self.weight / (height_in_meters ** 2), 2)
