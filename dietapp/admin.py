@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.timezone import localtime
-from users.models import Profile  # Import Profile from the correct app
-from user.models import (  # Import other models from user.models
+from users.models import (
+    Profile,
     Meal,
     Weekly,
     Vitamin,
@@ -19,12 +19,13 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__email')
     list_filter = ('age',)
     readonly_fields = ('bmi',)
-    list_editable = ('age', 'weight', 'height')  # Enable direct editing in the list view
+    list_editable = ('age', 'weight', 'height')
     search_help_text = "Search by username or email"
 
     def bmi(self, obj):
         return obj.bmi
     bmi.short_description = 'BMI'
+
 
 # Inline Admin for Vitamins and Minerals in Meals
 class VitaminInline(admin.TabularInline):
