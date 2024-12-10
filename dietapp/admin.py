@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Meal, Carbs, Drinks, Fats, Vitamin, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE
+    Meal, Carbs, Drinks, Fats, Vitamin, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, Message
 )
 
 # Register all models in a single call for better clarity
