@@ -8,23 +8,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.utils.timezone import now, timedelta
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-
-from .models import (
-    Meal,
-    Exercise,
-    Weekly,
-    TDEE,
-    UserProfile,
-    JournalEntry,
-)
-from .forms import (
-    MealForm,
-    TDEEForm,
-    UserProfileForm,
-    JournalEntryForm,
-    UserUpdateForm, 
-    ProfileUpdateForm
-)
+from .models import Meal, Exercise, Weekly, TDEE, UserProfile, JournalEntry
+from .forms import MealForm, TDEEForm, UserProfileForm, JournalEntryForm, UserUpdateForm, ProfileUpdateForm
 
 
 # ========== Static Pages ==========
