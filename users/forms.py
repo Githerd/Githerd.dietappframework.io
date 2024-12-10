@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm, SetPasswordForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import Profile, UserProfile, Meal, Vitamin, Mineral, Weekly, Exercise, JournalEntry, TDEE, HealthData
 
 User = get_user_model()
 
