@@ -237,3 +237,26 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+
+
+import logging
+
+# Setup logger for the module
+logger = logging.getLogger(__name__)
+logger.info("Loading models in dietapp.models")
+
+import warnings
+from django.db.models.base import RuntimeWarning
+
+# Suppress specific warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning, module='django.db.models.base')
+
+# Example usage in a model
+from django.db import models
+
+class MyModel(models.Model):
+    name = models.CharField(max_length=100)
+
+    def save(self, *args, **kwargs):
+        logger.debug(f"Saving instance of MyModel: {self.name}")
+        super().save(*args, **kwargs)
