@@ -1,32 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from users import views as user_views
-from .views import (
-    TDEEView,
-    WeeklyCaloriesView,
-    JournalListView,
-    JournalDetailView,
-    JournalCreateView,
-    JournalUpdateView,
-    JournalDeleteView,
-    send_message,
-    inbox,
-    sent_messages,
-    single_meal,
-    delete_meal,
-    weekly_plan,
-    delete_weekly_plan,
-    about,
-    contact,
-    index,
-    login_view,
-    logout_view,
-    register,
-    singlemeal,
-    weekly,
-    deletemeal,
-    deletefromplan,
-)
+from dietapp import views  
 
 urlpatterns = [
     # ========== Home ==========
