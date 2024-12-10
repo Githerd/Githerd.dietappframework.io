@@ -1,13 +1,13 @@
 from django.contrib import admin
 from .models import (
     Meal, Carbs, Drinks, Fats, Vitamin, Proteins,
-    User, Minerals, Exercise, Weekly, JournalEntry, UserProfile, TDEE
+    User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE
 )
 
 # Register all models in a single call for better clarity
 models_to_register = [
     User, Carbs, Fats, Proteins, Drinks, Meal, Exercise,
- Weekly, TDEE, JournalEntry, Vitamin, UserProfile, Minerals, Message
+ Weekly, TDEE, JournalEntry, Vitamin, UserProfile, Mineral, Message
 ]
 
 # Register models in the admin panel
