@@ -10,8 +10,9 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Sum, F
 from .models import Meal, Exercise, Weekly, JournalEntry, UserProfile
-from .forms import MealForm, UserUpdateForm, ProfileUpdateForm, JournalEntryForm, TDEEForm
+from dietapp.forms import MealForm, UserUpdateForm, ProfileUpdateForm, JournalEntryForm, TDEEForm
 from .utils import calculate_tdee, calculate_weekly_totals, user_directory_path
+
 
 # ========== Static Pages ==========
 def about(request):
