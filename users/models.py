@@ -12,14 +12,6 @@ def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
 
 
-class User(AbstractUser):
-    """Custom User Model extending AbstractUser."""
-    email = models.EmailField(unique=True)
-
-    def __str__(self):
-        return self.username
-
-
 # Profile Model
 class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
