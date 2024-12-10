@@ -30,15 +30,7 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
-class UserUpdateForm(forms.ModelForm):
-    email = forms.EmailField()
 
-    class Meta:
-        model = User
-        fields = ['username', 'email']
-
-from django import forms
-from .models import Profile
 
 class ProfileUpdateForm(forms.ModelForm):
     """
@@ -54,16 +46,6 @@ class ProfileUpdateForm(forms.ModelForm):
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your weight in kg'}),
         }
 
-class ProfileUpdateForm(forms.ModelForm):
-    """
-    Form for updating additional user profile information.
-    """
-    class Meta:
-        model = UserProfile  # Directly reference the model
-        fields = ['image', 'age', 'height', 'weight', 'goal']
-        widgets = {
-            'goal': forms.Select(attrs={'class': 'form-control'}),
-        }
 
 # Registration Form
 class ContactForm(forms.Form):
