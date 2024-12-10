@@ -7,6 +7,8 @@ from django.contrib import messages
 from django.utils.timezone import now
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from dietapp.models import Meal  # If Meal is defined in dietapp
+from users.models import UserProfile
 
 from .models import Meal, Carbs, Drinks, Fats, Meals, Vitamins, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
 from .forms import TDEEForm, MealForm, UserProfileForm, TDEEForm, JournalEntryForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, ContactForm, RegisterForm, MealForm, CustomPasswordResetForm, HealthDataForm, WeeklyCaloriesView, TDEEView, TDEEForm, JournalEntryForm, WeeklyMealForm, ExerciseForm, MineralForm, VitaminForm
