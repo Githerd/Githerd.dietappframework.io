@@ -38,38 +38,38 @@ DietApp is a Django-based web application designed to help users manage their di
 - Git
 - Pipenv or virtualenv (recommended for dependency management)
 ### Steps
-1. Clone the repository:
+- Clone the repository:
    ```bash
    git clone https://github.com/yourusername/dietapp.git
    cd dietapp
-	2.	Set up a virtual environment:
+- Set up a virtual environment:
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-	3.	Install dependencies:
+- Install dependencies:
 pip install -r requirements.txt
-	4.	Set up the database:
+- Set up the database:
 Update your .env file with your database credentials, or use SQLite for development. Example .env file:
 DEBUG=True
 SECRET_KEY=your_secret_key
 DATABASE_URL=sqlite:///db.sqlite3
 Then apply migrations:
 python manage.py migrate
-	5.	Create a superuser:
+- Create a superuser:
 python manage.py createsuperuser
-	6.	Collect static files:
+- Collect static files:
 python manage.py collectstatic
-	7.	Run the development server:
+- Run the development server:
 python manage.py runserver
 The app will be available at http://127.0.0.1:8000.
 Deployment
 DietApp is designed for deployment on platforms like Render or Heroku. Follow their respective guidelines to deploy your Django app.
 Example Deployment Steps:
-	•	Install gunicorn and whitenoise for production:
+**Install gunicorn and whitenoise for production:
 pip install gunicorn whitenoise
-	•	Update settings.py:
+**Update settings.py:
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-	•	Use environment variables for secrets in production (e.g., SECRET_KEY, DEBUG).
-	•	Configure Procfile for Gunicorn:
+**Use environment variables for secrets in production (e.g., SECRET_KEY, DEBUG).
+**Configure Procfile for Gunicorn:
 web: gunicorn dietapp.wsgi:application
 Usage
 	1.	Register as a user.
