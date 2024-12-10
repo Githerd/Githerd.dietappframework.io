@@ -28,8 +28,7 @@ ALLOWED_HOSTS = ['githerd-dietappframework-io.onrender.com', 'localhost', '127.0
 # Application definition
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
-    'users.apps.UsersConfig',
-    'users',  # Ensure this is correctly separated by commas
+    'users.apps.UsersConfig',  # Keep this
     'dietapp.apps.DietappConfig',
     'crispy_forms',
     'crispy_bootstrap5',
