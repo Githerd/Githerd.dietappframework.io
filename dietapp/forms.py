@@ -76,8 +76,6 @@ class ContactForm(forms.Form):
     )
 
 
-
-
 # User Profile Form
 class UserProfileForm(forms.ModelForm):
     class Meta:
