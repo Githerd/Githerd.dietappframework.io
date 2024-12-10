@@ -8,9 +8,10 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.utils.timezone import now, timedelta
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Meal, Exercise, Weekly, TDEE, UserProfile, JournalEntry
-from .forms import MealForm, TDEEForm, UserProfileForm, JournalEntryForm, UserUpdateForm, ProfileUpdateForm
-
+from .models import TDEE
+from .forms import TDEEForm
+from .utils import calculate_tdee
+from django.db.models import Sum, F
 
 # ========== Static Pages ==========
 def about(request):
@@ -27,9 +28,9 @@ def contact(request):
 @login_required
 def dashboard(request):
     """Render the dashboard with user details and health summary."""
-    meals = Meals.objects.filter(mealcreator=request.user)
-    exercises = Exercise.objects.filter(user=request.user)
-    weekly_plan = Weekly.objects.filter(user=request.user)
+    meals = Meals.objects.filter(mealcreator=request.user).select_related('mealcreator')
+    exercises = Exercise.objects.filter(user=request.user).select_related('user')
+    weekly_plan = Weekly.objects.filter(user=request.user).select_related('meal', 'user')
 
     context = {
         'meals': meals,
@@ -37,7 +38,6 @@ def dashboard(request):
         'weekly_plan': weekly_plan,
     }
     return render(request, 'dietapp/dashboard.html', context)
-
 
 @login_required
 def profile(request):
@@ -77,14 +77,15 @@ def singlemeal(request):
     """Create and view single meals."""
     if request.method == "POST":
         form = MealForm(request.POST)
-        if form.is_valid():
-            meal = form.save(commit=False)
-            meal.mealcreator = request.user
-            meal.save()
-            messages.success(request, "Meal successfully added!")
-            return redirect('singlemeal')
+ if form.is_valid():
+    if form.cleaned_data['calories'] < 0:
+        messages.error(request, "Calories cannot be negative.")
     else:
-        form = MealForm()
+        meal = form.save(commit=False)
+        meal.mealcreator = request.user
+        meal.save()
+        messages.success(request, "Meal successfully added!")
+        return redirect('singlemeal')
 
     meals = Meals.objects.filter(mealcreator=request.user)
     context = {'form': form, 'meals': meals}
@@ -94,10 +95,13 @@ def singlemeal(request):
 @login_required
 def deletemeal(request, meal_id):
     """Delete a specific meal."""
-    meal = get_object_or_404(Meals, id=meal_id, mealcreator=request.user)
-    meal.delete()
-    messages.success(request, "Meal successfully deleted!")
-    return redirect('singlemeal')
+   meal = get_object_or_404(Meals, id=meal_id)
+   if meal.mealcreator != request.user:
+      messages.error(request, "You do not have permission to delete this meal.")
+      return redirect('singlemeal')
+   meal.delete()
+   messages.success(request, "Meal successfully deleted!")
+   return redirect('singlemeal')
 
 
 # ========== Exercise Management ==========
@@ -122,9 +126,7 @@ def add_exercise(request):
     return render(request, "dietapp/add_exercise.html")
 
 
-
 # Journal Entry Views
-
 class JournalListView(LoginRequiredMixin, ListView):
     """View to list all journal entries."""
     model = JournalEntry
@@ -194,62 +196,35 @@ def contact(request):
 
 
 # ========== TDEE Calculation ==========
-def tdee_calculate(request):
-    """TDEE Calculation."""
-    result = None
-    if request.method == "POST":
-        form = TDEEForm(request.POST)
-        if form.is_valid():
-            weight = form.cleaned_data['weight']
-            height = form.cleaned_data['height']
-            age = form.cleaned_data['age']
-            gender = form.cleaned_data['gender']
-            activity_level = form.cleaned_data['activity_level']
+GENDER_VALUES = {"male": 5, "female": -161}
+ACTIVITY_MULTIPLIERS = [1.2, 1.375, 1.55, 1.725, 1.9]
 
-            # Gender constant: 5 for male, -161 for female
-            gender_value = 5 if gender == "male" else -161
-            activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][int(activity_level) - 1]
-
-            result = ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
-
-            # Save TDEE for user
-            TDEE.objects.create(user=request.user, calories=result)
-
-            messages.success(request, f"Your TDEE is {result:.0f} kcal.")
-    else:
-        form = TDEEForm()
-
-    return render(request, "dietapp/tdee_calculate.html", {"form": form, "result": result})
+def calculate_tdee(weight, height, age, gender, activity_level):
+    gender_value = GENDER_VALUES.get(gender.lower(), 0)
+    activity_multiplier = ACTIVITY_MULTIPLIERS[int(activity_level) - 1]
+    return ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name='dispatch')
 class TDEEView(TemplateView):
     template_name = "dietapp/tdee.html"
-
-    def get(self, request, *args, **kwargs):
-        form = TDEEForm()
-        return render(request, self.template_name, {"form": form})
 
     def post(self, request, *args, **kwargs):
         form = TDEEForm(request.POST)
         result = None
 
         if form.is_valid():
-            weight = form.cleaned_data['weight']
-            height = form.cleaned_data['height']
-            age = form.cleaned_data['age']
-            gender = form.cleaned_data['gender']
-            activity_level = int(form.cleaned_data['activity_level'])
-
-            # Gender value adjustment: 5 for male, -161 for female
-            gender_value = 5 if gender == "male" else -161
-            activity_multiplier = [1.2, 1.375, 1.55, 1.725, 1.9][activity_level - 1]
-
-            # TDEE formula
-            result = ((weight * 10) + (height * 6.25) - (age * 5) + gender_value) * activity_multiplier
+            result = calculate_tdee(
+                form.cleaned_data['weight'],
+                form.cleaned_data['height'],
+                form.cleaned_data['age'],
+                form.cleaned_data['gender'],
+                form.cleaned_data['activity_level']
+            )
 
         return render(request, self.template_name, {"form": form, "result": result})
-
+        
 
 # ========== Weekly Meal Planning ==========
 @login_required
@@ -258,14 +233,24 @@ def weekly_plan(request):
     if request.method == "POST":
         day = request.POST.get('day')
         meal_id = request.POST.get('meal_select')
-        meal = get_object_or_404(Meals, id=meal_id)
+        
+        if not day or not meal_id:
+            messages.error(request, "Both day and meal selection are required.")
+            return redirect('weekly_plan')
 
-        Weekly.objects.create(user=request.user, meal=meal, day=day)
-        messages.success(request, f"Meal added to {day}'s plan!")
+        try:
+            meal = Meals.objects.get(id=meal_id, mealcreator=request.user)
+            Weekly.objects.create(user=request.user, meal=meal, day=day)
+            messages.success(request, f"Meal added to {day}'s plan!")
+        except Meals.DoesNotExist:
+            messages.error(request, "Selected meal does not exist.")
+        except Exception as e:
+            logger.error(f"Error adding meal to weekly plan: {e}")
+            messages.error(request, "An error occurred while adding the meal.")
         return redirect('weekly_plan')
 
-    meals = Meals.objects.filter(mealcreator=request.user)
-    weekly_meals = Weekly.objects.filter(user=request.user)
+    meals = Meals.objects.filter(mealcreator=request.user).select_related('mealcreator')
+    weekly_meals = Weekly.objects.filter(user=request.user).select_related('meal', 'user')
 
     context = {
         'meals': meals,
@@ -281,32 +266,6 @@ def deletefromplan(request, plan_id):
     weekly_entry.delete()
     messages.success(request, "Meal removed from the weekly plan.")
     return redirect('weekly_plan')
-
-
-@method_decorator(login_required, name='dispatch')
-class WeeklyCaloriesView(TemplateView):
-    template_name = "dietapp/weekly_calories.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        # Get meals and exercises for the current week
-        week_start = now().date() - timedelta(days=now().date().weekday())
-        meals = Meal.objects.filter(user=user, date__date__gte=week_start)
-        exercises = Exercise.objects.filter(user=user, date__date__gte=week_start)
-
-        # Calculate totals
-        total_calories_intake = sum(meal.calories for meal in meals)
-        total_calories_burned = sum(exercise.calories_burned for exercise in exercises)
-
-        # Add to context
-        context['meals'] = meals
-        context['exercises'] = exercises
-        context['total_calories_intake'] = total_calories_intake
-        context['total_calories_burned'] = total_calories_burned
-
-        return context
 
 
 # ========== Utility Functions ==========
@@ -349,31 +308,22 @@ def weekly(request):
 
 
 def calculate_macros(weekly_meals):
-    """
-    Calculate the total and average macros (carbs, fats, proteins, and calories) 
-    from the user's weekly meals.
-    """
-    total_fat = 0
-    total_carb = 0
-    total_protein = 0
-    total_calories = 0
+    if not weekly_meals.exists():
+        return {"average_fat": 0, "average_carb": 0, "average_protein": 0, "average_calories": 0}
 
-    for entry in weekly_meals:
-        total_fat += entry.meal.totalfat
-        total_carb += entry.meal.totalcarb
-        total_protein += entry.meal.totalprotein
-        total_calories += entry.meal.calories
+    totals = weekly_meals.aggregate(
+        total_fat=Sum(F('meal__totalfat')),
+        total_carb=Sum(F('meal__totalcarb')),
+        total_protein=Sum(F('meal__totalprotein')),
+        total_calories=Sum(F('meal__calories')),
+    )
 
-    average_fat = round(total_fat / 7, 2) if weekly_meals else 0
-    average_carb = round(total_carb / 7, 2) if weekly_meals else 0
-    average_protein = round(total_protein / 7, 2) if weekly_meals else 0
-    average_calories = round(total_calories / 7, 2) if weekly_meals else 0
-
+    days = weekly_meals.count()
     return {
-        "average_fat": average_fat,
-        "average_carb": average_carb,
-        "average_protein": average_protein,
-        "average_calories": average_calories,
+        "average_fat": round(totals['total_fat'] / days, 2),
+        "average_carb": round(totals['total_carb'] / days, 2),
+        "average_protein": round(totals['total_protein'] / days, 2),
+        "average_calories": round(totals['total_calories'] / days, 2),
     }
 
 
