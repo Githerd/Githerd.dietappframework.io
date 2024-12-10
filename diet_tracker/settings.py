@@ -97,20 +97,7 @@ USE_L10N = True
 USE_TZ = True
 
 
-# URL for serving static files
 STATIC_URL = 'static/'
-
-# Path where static files will be collected
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Additional directories where Django will look for static files
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-# Media configuration for user-uploaded files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type
@@ -126,7 +113,9 @@ LOGIN_REDIRECT_URL = 'dietapp-home'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'dietapp-home'
 
-
+# Media configuration for user-uploaded files
+MEDIA_ROOT = BASE_DIR / 'media' # Newer modern and Pythonic way
+MEDIA_URL = '/media/'
 
 # Email backend configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
