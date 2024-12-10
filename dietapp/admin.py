@@ -1,4 +1,5 @@
 from django.contrib import admin
+from users.models import Profile
 from django.utils.timezone import localtime
 from .models import (
     Meal,
