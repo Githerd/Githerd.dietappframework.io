@@ -189,23 +189,11 @@ class MealForm(forms.ModelForm):
 
 # Weekly Plan Model
 class Weekly(models.Model):
-    day = models.CharField(max_length=10, choices=DaysOfWeek.choices)
-
-class DaysOfWeek(models.TextChoices):
-    MONDAY = 'Monday', _('Monday')
-    TUESDAY = 'Tuesday', _('Tuesday')
-    WEDNESDAY = 'Wednesday', _('Wednesday')
-    THURSDAY = 'Thursday', _('Thursday')
-    FRIDAY = 'Friday', _('Friday')
-    SATURDAY = 'Saturday', _('Saturday')
-    SUNDAY = 'Sunday', _('Sunday')
-
-
-class Weekly(models.Model):
     day = models.CharField(
         max_length=10,
         choices=DaysOfWeek.choices,
-        verbose_name="Day of the Week"
+        verbose_name="Day of the Week",
+        default=DaysOfWeek.MONDAY  # Setting default to 'Monday'
     )
     meal = models.ForeignKey(
         'Meal',
@@ -230,6 +218,7 @@ class Weekly(models.Model):
 
     def __str__(self):
         return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
+
 
 
 # Vitamins for Meals
@@ -278,19 +267,16 @@ class Mineral(models.Model):
 
 
 # Exercise Model
-class Weekly(models.Model):
-    day = models.CharField(max_length=10, choices=DaysOfWeek.choices)
-    
-class ExerciseType(TextChoices):
-    EXERCISE_TYPE_CHOICES = [
-        ('cardio', 'Cardio'),
-        ('strength', 'Strength'),
-    ]
+class Exercise(models.Model):
+    class ExerciseType(TextChoices):
+        CARDIO = 'cardio', _('Cardio')
+        STRENGTH = 'strength', _('Strength')
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
     name = models.CharField(max_length=100)
-    type = models.CharField(max_length=50, choices=EXERCISE_TYPE_CHOICES)
-    duration = models.IntegerField(validators=[MinValueValidator(0)])
-    calories_burned = models.FloatField(validators=[MinValueValidator(0)])
+    type = models.CharField(max_length=50, choices=ExerciseType.choices)
+    duration = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name="Duration (minutes)")
+    calories_burned = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Calories Burned")
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -335,6 +321,8 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
