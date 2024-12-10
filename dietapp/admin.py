@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.timezone import localtime
 from .models import (
     Meal,
     Weekly,
@@ -8,9 +9,25 @@ from .models import (
     TDEE,
     JournalEntry,
     Message,
+    Profile,
 )
 
 
+# Custom Admin for Profile
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'age', 'weight', 'height', 'bmi')
+    search_fields = ('user__username', 'user__email')
+    list_filter = ('age',)
+    readonly_fields = ('bmi',)
+    list_editable = ('age', 'weight', 'height')  # Enable direct editing in the list view
+    search_help_text = "Search by username or email"
+
+    def bmi(self, obj):
+        return obj.bmi
+    bmi.short_description = 'BMI'
+    
+    
 # Inline Admin for Vitamins and Minerals in Meals
 class VitaminInline(admin.TabularInline):
     model = Vitamin
@@ -30,10 +47,11 @@ class MineralInline(admin.TabularInline):
 @admin.register(Meal)
 class MealAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'calories', 'protein', 'carbs', 'fat', 'date')
-    list_filter = ('date',)
+    list_filter = ('date', 'protein', 'carbs', 'fat')  # Add macronutrient filtering
     search_fields = ('name', 'user__username')
     inlines = [VitaminInline, MineralInline]
     list_select_related = ('user',)
+    list_per_page = 25  # Enable pagination
 
 
 # Custom Admin for Weekly Plan
@@ -63,13 +81,20 @@ class TDEEAdmin(admin.ModelAdmin):
     list_select_related = ('user',)
 
 
-# Custom Admin for JournalEntry
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'date_posted')
+    list_display = ('title', 'author', 'formatted_date_posted')  # Use the formatted date
     search_fields = ('title', 'author__username')
-    list_filter = ('date_posted',)
+    list_filter = ('date_posted', 'author')  # Allow filtering by author
+    list_editable = ('title',)  # Allow editing title in the list view
     list_select_related = ('author',)
+    list_per_page = 20  # Enable pagination
+    search_help_text = "Search by title or author's username"
+
+    def formatted_date_posted(self, obj):
+        return localtime(obj.date_posted).strftime('%Y-%m-%d %H:%M:%S')
+    formatted_date_posted.admin_order_field = 'date_posted'
+    formatted_date_posted.short_description = 'Posted Date'
 
 
 # Custom Admin for Message
