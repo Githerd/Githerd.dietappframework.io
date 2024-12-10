@@ -4,20 +4,12 @@ from .models import (
     User, Minerals, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
 )
 
-# Register your models
-admin.site.register(User)
-admin.site.register(Carbs)
-admin.site.register(Fats)
-admin.site.register(Proteins)
-admin.site.register(Drinks)
-admin.site.register(Meal)
-admin.site.register(Exercise)
-admin.site.register(HealthData)
-admin.site.register(Weekly)
-admin.site.register(TDEE)
-admin.site.register(JournalEntry)
-admin.site.register(Profile)
-admin.site.register(Vitamin)
-admin.site.register(UserProfile)
-admin.site.register(Minerals)
+# Register all models in a single call for better clarity
+models_to_register = [
+    User, Carbs, Fats, Proteins, Drinks, Meal, Exercise,
+    HealthData, Weekly, TDEE, JournalEntry, Profile, Vitamin, UserProfile, Minerals
+]
 
+# Register models in the admin panel
+for model in models_to_register:
+    admin.site.register(model)
