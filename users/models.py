@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 def user_directory_path(instance, filename):
     return f'profile_pics/{instance.username}/{filename}'
 
-
 # Custom User Model
 class User(AbstractUser):
     email = models.EmailField(unique=True)
