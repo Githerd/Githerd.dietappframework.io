@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
 from PIL import Image
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 # Utility function for user file upload paths
 def user_directory_path(instance, filename):
