@@ -195,14 +195,16 @@ def weekly_plan(request):
 
         if not day or not meal_id:
             messages.error(request, "Both day and meal selection are required.")
-            return redirect('weekly_plan')
+        else:
+            try:
+                meal = Meal.objects.get(id=meal_id, mealcreator=request.user)
+                Weekly.objects.create(user=request.user, meal=meal, day=day)
+                messages.success(request, f"Meal added to {day}'s plan!")
+            except Meal.DoesNotExist:
+                messages.error(request, "Selected meal does not exist or does not belong to you.")
 
-        try:
-            meal = Meal.objects.get(id=meal_id, mealcreator=request.user)
-            Weekly.objects.create(user=request.user, meal=meal, day=day)
-            messages.success(request, f"Meal added to {day}'s plan!")
-        except Meal.DoesNotExist:
-            messages.error(request, "Selected meal does not exist.")
+        return redirect('weekly-plan')
+
     meals = Meal.objects.filter(mealcreator=request.user)
     weekly_meals = Weekly.objects.filter(user=request.user)
     context = {'meals': meals, 'weekly_meals': weekly_meals}
