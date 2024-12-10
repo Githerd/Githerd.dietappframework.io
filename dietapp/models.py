@@ -5,6 +5,9 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
+# Import TextChoices for use in enumerations
+from django.db.models import TextChoices
+
 User = get_user_model()
 
 # Food Components Models
@@ -141,7 +144,7 @@ class Message(models.Model):
         return f"Message from {self.sender.username} to {self.receiver.username}"
 
 
-class DaysOfWeek(models.TextChoices):
+class DaysOfWeek(TextChoices):
     MONDAY = 'Monday', _('Monday')
     TUESDAY = 'Tuesday', _('Tuesday')
     WEDNESDAY = 'Wednesday', _('Wednesday')
