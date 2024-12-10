@@ -7,6 +7,15 @@ from .models import Profile, UserProfile, Meal, Vitamin, Mineral, Weekly, Exerci
 
 User = get_user_model()
 
+def get_user_profile_model():
+    from users.models import UserProfile
+    return UserProfile
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = get_user_profile_model()
+        fields = ['user', 'age', 'height', 'weight']
+
 # Registration Form
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
@@ -21,7 +30,6 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
-
 # User Update Form
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField()
@@ -29,7 +37,6 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email']
-
 
 # Profile Update Form
 class ProfileUpdateForm(forms.ModelForm):
@@ -42,7 +49,6 @@ class ProfileUpdateForm(forms.ModelForm):
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your weight in kg'}),
         }
 
-
 # Meal Form
 class MealForm(forms.ModelForm):
     class Meta:
@@ -51,7 +57,6 @@ class MealForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
-
 
 # Vitamin Form
 class VitaminForm(forms.ModelForm):
@@ -113,13 +118,11 @@ class TDEEForm(forms.Form):
         required=True
     )
 
-
 # Health Data Form
 class HealthDataForm(forms.ModelForm):
     class Meta:
         model = HealthData
         fields = ['weight', 'height', 'age', 'calories_intake', 'calories_burned']
-
 
 # Custom Password Reset Form
 class CustomPasswordResetForm(PasswordResetForm):
@@ -133,7 +136,6 @@ class CustomPasswordResetForm(PasswordResetForm):
         if not User.objects.filter(email=email).exists():
             raise forms.ValidationError("There is no user registered with the specified email address.")
         return email
-
 
 # Custom Set Password Form
 class CustomSetPasswordForm(SetPasswordForm):
