@@ -213,12 +213,16 @@ class Vitamin(models.Model):
     percentage = models.PositiveIntegerField(default=0)
 
     class Meta:
-    constraints = [
-        models.CheckConstraint(check=models.Q(percentage__gte=0) & models.Q(percentage__lte=100), name="valid_percentage_range"),
-    ]
-    
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(percentage__gte=0) & models.Q(percentage__lte=100),
+                name="valid_percentage_range"
+            ),
+        ]
+
     def clean(self):
-        validate_percentage(self.percentage)
+        if not (0 <= self.percentage <= 100):
+            raise ValidationError("Percentage must be between 0 and 100.")
 
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
@@ -230,10 +234,13 @@ class Mineral(models.Model):
     name = models.CharField(max_length=50)
     percentage = models.PositiveIntegerField(default=0)
 
-    class Meta:
-    constraints = [
-        models.CheckConstraint(check=models.Q(percentage__gte=0) & models.Q(percentage__lte=100), name="valid_percentage_range"),
-    ]
+     class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(percentage__gte=0) & models.Q(percentage__lte=100),
+                name="valid_percentage_range"
+            ),
+        ]
     
     def clean(self):
         if not 0 <= self.percentage <= 100:
