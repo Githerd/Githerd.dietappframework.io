@@ -87,3 +87,5 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ('timestamp',)
     search_fields = ('sender__username', 'receiver__username', 'content')
     list_select_related = ('sender', 'receiver')
+
+
