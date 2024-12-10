@@ -1,24 +1,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.utils.timezone import now
+from django.core.validators import MinValueValidator, FileExtensionValidator
+from django.core.exceptions import ValidationError
 from django.urls import reverse
-from django.contrib import admin
-from .models import UserProfile, Meal, Weekly, Exercise, TDEE, JournalEntry, Vitamin, Mineral
 
-
-User = get_user_model()
-
-user = User.objects.get(username='example')
-user.meals.all()  # Returns all meals related to this user
-
-def clean(self):
-    if self.percentage < 0 or self.percentage > 100:
-        raise ValidationError("Percentage must be between 0 and 100.")
 # Utility function for user file upload paths
 def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
-
 
 # Custom User Model
 class User(AbstractUser):
@@ -38,8 +27,8 @@ class UserProfile(models.Model):
         validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])]
     )
     age = models.PositiveIntegerField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True)  # Height in centimeters
+    weight = models.FloatField(null=True, blank=True)  # Weight in kilograms
     goal = models.CharField(
         max_length=100,
         choices=[
@@ -51,7 +40,7 @@ class UserProfile(models.Model):
     )
 
     def clean(self):
-        if self.age and (self.age <= 0 or self.age > 150):
+        if self.age and not (0 < self.age <= 150):
             raise ValidationError("Age must be between 1 and 150.")
         if self.height and self.height <= 0:
             raise ValidationError("Height must be a positive value.")
@@ -64,7 +53,8 @@ class UserProfile(models.Model):
     @property
     def bmi(self):
         if self.height and self.weight:
-            return round(self.weight / (self.height / 100) ** 2, 2)
+            height_in_meters = self.height / 100
+            return round(self.weight / (height_in_meters ** 2), 2)
         return None
 
 
@@ -72,11 +62,11 @@ class UserProfile(models.Model):
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals")
     name = models.CharField(max_length=100)
-    calories = models.FloatField(default=0.0)
-    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Protein (g)")
-    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Carbs (g)")
-    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Fat (g)")
-    description = models.TextField(blank=True, null=True, verbose_name="Description")
+    calories = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
+    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
+    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
+    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
+    description = models.TextField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -89,90 +79,7 @@ class Meal(models.Model):
         return reverse('meal-detail', kwargs={'pk': self.pk})
 
 
-# Carbs Model
-class Carbs(models.Model):
-    name = models.CharField(max_length=50)
-    gfat = models.PositiveIntegerField(default=0)
-    gcarb = models.PositiveIntegerField(default=0)
-    gprotein = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return self.name
-
-
-# Fats Model
-class Fats(models.Model):
-    name = models.CharField(max_length=100)
-    fat_content = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Fat Content (g)")
-
-    def __str__(self):
-        return self.name
-
-
-# Proteins Model
-class Proteins(models.Model):
-    name = models.CharField(max_length=50)
-    gfat = models.PositiveIntegerField(default=0)
-    gcarb = models.PositiveIntegerField(default=0)
-    gprotein = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return self.name
-
-
-# Drinks Model
-class Drinks(models.Model):
-    name = models.CharField(max_length=50)
-    gfat = models.PositiveIntegerField(default=0)
-    gcarb = models.PositiveIntegerField(default=0)
-    gprotein = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return self.name
-
-
-
-@admin.register(Meal)
-class MealAdmin(admin.ModelAdmin):
-    list_display = ('name', 'calories', 'date', 'user')
-    search_fields = ('name', 'user__username')
-    list_filter = ('date', 'user')
-    ordering = ['-date']
-    filter_horizontal = ('vitamins', 'minerals')  # If Many-to-Many is used
-
-@admin.register(Vitamin)
-class VitaminAdmin(admin.ModelAdmin):
-    list_display = ('name', 'percentage', 'meal')
-    search_fields = ('name', 'meal__name')
-
-@admin.register(Message)
-class MessageAdmin(admin.ModelAdmin):
-    list_display = ('sender', 'receiver', 'timestamp', 'is_read')
-    search_fields = ('sender__username', 'receiver__username', 'content')
-    list_filter = ('is_read', 'timestamp')
-    
-# Vitamins for Meals
-class Vitamin(models.Model):
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
-    name = models.CharField(max_length=50)
-    percentage = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
-
-
-# Minerals for Meals
-class Mineral(models.Model):
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="minerals")
-    name = models.CharField(max_length=50)
-    percentage = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
-
-
-# Weekly Meal Plan
-# Weekly Plan
+# Weekly Plan Model
 class Weekly(models.Model):
     DAYS_OF_WEEK = [
         ('Monday', 'Monday'),
@@ -189,31 +96,13 @@ class Weekly(models.Model):
 
     class Meta:
         ordering = ['day']
-        unique_together = ['day', 'user']  # Prevent duplicate meals on the same day for a user
+        unique_together = ['day', 'user']
 
     def __str__(self):
         return f"{self.meal.name} on {self.day} for {self.user.username}"
 
-    def total_calories_for_week(self):
-        return sum(weekly.meal.calories for weekly in self.user.weekly_entries.all())
 
-
-# Messaging System
-class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    content = models.TextField()
-    timestamp = models.DateTimeField(default=now)
-    is_read = models.BooleanField(default=False)  # To track read/unread status
-
-    class Meta:
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
-
-
-# Vitamin and Mineral Validation
+# Vitamins for Meals
 class Vitamin(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
     name = models.CharField(max_length=50)
@@ -227,6 +116,7 @@ class Vitamin(models.Model):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
 
 
+# Minerals for Meals
 class Mineral(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="minerals")
     name = models.CharField(max_length=50)
@@ -239,23 +129,17 @@ class Mineral(models.Model):
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
 
-# Exercise Model
-EXERCISE_TYPE_CHOICES = [
-    ('cardio', 'Cardio'),
-    ('strength', 'Strength'),
-]
 
-class Weekly(models.Model):
-    ...
-    def total_calories_for_day(self, day):
-        meals = self.filter(day=day)
-        return sum(meal.meal.calories for meal in meals)
-        
+# Exercise Model
 class Exercise(models.Model):
+    EXERCISE_TYPE_CHOICES = [
+        ('cardio', 'Cardio'),
+        ('strength', 'Strength'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=50, choices=EXERCISE_TYPE_CHOICES)
-    duration = models.IntegerField(validators=[MinValueValidator(0)], help_text="Duration in minutes")
+    duration = models.IntegerField(validators=[MinValueValidator(0)])
     calories_burned = models.FloatField(validators=[MinValueValidator(0)])
     date = models.DateTimeField(auto_now_add=True)
 
@@ -264,17 +148,6 @@ class Exercise(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.calories_burned} kcal)"
-
-
-# Journal Entry Model
-class JournalEntry(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
-    date_posted = models.DateTimeField(default=now)
-
-    def __str__(self):
-        return self.title
 
 
 # TDEE Model
@@ -290,24 +163,12 @@ class TDEE(models.Model):
         return f"TDEE for {self.user.username}: {self.calories} kcal"
 
 
-class TDEE(models.Model):
-    ...
-    def recommended_calories(self, goal):
-        if goal == "lose_weight":
-            return self.calories - 500
-        elif goal == "gain_weight":
-            return self.calories + 500
-        return self.calories
-
-# Messaging System
-class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+# Journal Entry Model
+class JournalEntry(models.Model):
+    title = models.CharField(max_length=200)
     content = models.TextField()
-    timestamp = models.DateTimeField(default=now)
-
-    class Meta:
-        ordering = ['-timestamp']
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
+    date_posted = models.DateTimeField(default=now)
 
     def __str__(self):
-        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+        return self.title
