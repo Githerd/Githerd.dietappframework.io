@@ -1,5 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
+from users import views as user_views
 from .views import (
     TDEEView,
     WeeklyCaloriesView,
@@ -28,9 +29,14 @@ from .views import (
     deletefromplan,
 )
 
+
 urlpatterns = [
     # ========== Home ==========
     path("", index, name="index"),  # App's index page
+    path('register/', user_views.register, name='register'),
+    path('login/', user_views.profile, name='login'),
+    path('profile/', user_views.profile, name='profile'),
+    path('', include('dietapp.urls')),
 
     # ========== User Management ==========
     path("login/", login_view, name="login"),  # Login page
