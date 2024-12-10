@@ -80,17 +80,19 @@ def singlemeal(request):
     """Create and view single meals."""
     if request.method == "POST":
         form = MealForm(request.POST)
- if form.is_valid():
-    if form.cleaned_data['calories'] < 0:
-        messages.error(request, "Calories cannot be negative.")
+        if form.is_valid():
+            if form.cleaned_data['calories'] < 0:
+                messages.error(request, "Calories cannot be negative.")
+            else:
+                meal = form.save(commit=False)
+                meal.mealcreator = request.user
+                meal.save()
+                messages.success(request, "Meal successfully added!")
+                return redirect('singlemeal')
     else:
-        meal = form.save(commit=False)
-        meal.mealcreator = request.user
-        meal.save()
-        messages.success(request, "Meal successfully added!")
-        return redirect('singlemeal')
+        form = MealForm()
 
-    meals = Meals.objects.filter(mealcreator=request.user)
+    meals = Meal.objects.filter(mealcreator=request.user)  # Corrected model name
     context = {'form': form, 'meals': meals}
     return render(request, "dietapp/single_meal.html", context)
 
