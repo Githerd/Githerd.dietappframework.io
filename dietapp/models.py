@@ -189,12 +189,22 @@ class MealForm(forms.ModelForm):
 
 
 # Weekly Plan Model
+class DaysOfWeek(models.TextChoices):
+    MONDAY = 'Monday', _('Monday')
+    TUESDAY = 'Tuesday', _('Tuesday')
+    WEDNESDAY = 'Wednesday', _('Wednesday')
+    THURSDAY = 'Thursday', _('Thursday')
+    FRIDAY = 'Friday', _('Friday')
+    SATURDAY = 'Saturday', _('Saturday')
+    SUNDAY = 'Sunday', _('Sunday')
+
+
 class Weekly(models.Model):
     day = models.CharField(
         max_length=10,
         choices=DaysOfWeek.choices,
         verbose_name="Day of the Week",
-        default=DaysOfWeek.MONDAY  # Setting default to 'Monday'
+        default=DaysOfWeek.MONDAY  # Optional default value
     )
     meal = models.ForeignKey(
         'Meal',
