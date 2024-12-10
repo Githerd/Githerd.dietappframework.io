@@ -22,19 +22,22 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s profile"
 
-
-
-# Utility function for user file upload paths
-def user_directory_path(instance, filename):
-    return f'profile_pics/{instance.user.username}/{filename}'
-
-    
     @property
     def bmi(self):
         if self.height and self.weight:
             height_in_meters = self.height / 100
             return round(self.weight / (height_in_meters ** 2), 2)
         return None
+        
+
+
+
+# Utility function for user file upload paths
+def user_directory_path(instance, filename):
+    return f'profile_pics/{instance.user.username}/{filename}'
+
+
+
 
 # Food Components Models
 class FoodComponent(models.Model):
@@ -61,43 +64,22 @@ class Proteins(FoodComponent):
 class Drinks(FoodComponent):
     pass
 
+
+
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals")
-    name = models.CharField(max_length=100, verbose_name="Meal Name")
-    calories = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories (kcal)")
-    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Protein (g)")
-    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Carbs (g)")
-    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Fat (g)")
-    description = models.TextField(blank=True, null=True, verbose_name="Description")
+    name = models.CharField(max_length=100)
+    calories = models.FloatField(default=0.0)
+    protein = models.FloatField(default=0.0)
+    carbs = models.FloatField(default=0.0)
+    fat = models.FloatField(default=0.0)
+    description = models.TextField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-date']
-        verbose_name = "Meal"
-        verbose_name_plural = "Meals"
 
     def __str__(self):
         return f"{self.name} ({self.calories} kcal)"
 
-    def get_absolute_url(self):
-        return reverse('meal-detail', kwargs={'pk': self.pk})
-
-    def clean(self):
-        """
-        Custom validation to ensure the meal's nutritional values make sense.
-        """
-        if self.calories < 0:
-            raise ValidationError("Calories cannot be negative.")
-        if self.protein < 0 or self.carbs < 0 or self.fat < 0:
-            raise ValidationError("Nutritional values cannot be negative.")
-
-        # Validate calorie consistency: calories = 4 * (protein + carbs) + 9 * fat
-        calculated_calories = (4 * self.protein) + (4 * self.carbs) + (9 * self.fat)
-        if self.calories > calculated_calories:
-            raise ValidationError(
-                f"Calories exceed the calculated value from macros: {calculated_calories:.2f} kcal."
-            )
-
+    
     @property
     def macronutrient_distribution(self):
         """
@@ -116,6 +98,9 @@ class Meal(models.Model):
             "carbs": round((carb_calories / total_calories) * 100, 2),
             "fat": round((fat_calories / total_calories) * 100, 2),
         }
+
+
+
 
 class MealForm(forms.ModelForm):
     class Meta:
