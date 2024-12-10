@@ -6,6 +6,7 @@ from django.utils.timezone import now
 from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
