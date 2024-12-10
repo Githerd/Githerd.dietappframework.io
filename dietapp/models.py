@@ -67,25 +67,6 @@ class Meal(models.Model):
         }
 
 
-class Weekly(models.Model):
-    day = models.CharField(
-        max_length=10,
-        choices=DaysOfWeek.choices,
-        default=DaysOfWeek.MONDAY,
-    )
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="weekly_meals")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_entries")
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['day', 'user'], name='unique_weekly_meal_for_user'),
-        ]
-        ordering = ['day']
-
-    def __str__(self):
-        return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
-
-
 class Vitamin(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
     name = models.CharField(max_length=50)
@@ -158,3 +139,32 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username}"
+
+
+class DaysOfWeek(models.TextChoices):
+    MONDAY = 'Monday', _('Monday')
+    TUESDAY = 'Tuesday', _('Tuesday')
+    WEDNESDAY = 'Wednesday', _('Wednesday')
+    THURSDAY = 'Thursday', _('Thursday')
+    FRIDAY = 'Friday', _('Friday')
+    SATURDAY = 'Saturday', _('Saturday')
+    SUNDAY = 'Sunday', _('Sunday')
+
+
+class Weekly(models.Model):
+    day = models.CharField(
+        max_length=10,
+        choices=DaysOfWeek.choices,
+        default=DaysOfWeek.MONDAY,
+    )
+    meal = models.ForeignKey('Meal', on_delete=models.CASCADE, related_name="weekly_meals")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_entries")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['day', 'user'], name='unique_weekly_meal_for_user'),
+        ]
+        ordering = ['day']
+
+    def __str__(self):
+        return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
