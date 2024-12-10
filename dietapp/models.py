@@ -1,13 +1,18 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Utility function for user file upload paths
 def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
+
 
 # Custom User Model
 class User(AbstractUser):
@@ -56,6 +61,36 @@ class UserProfile(models.Model):
             height_in_meters = self.height / 100
             return round(self.weight / (height_in_meters ** 2), 2)
         return None
+
+
+# Food Components Models
+class FoodComponent(models.Model):
+    name = models.CharField(max_length=50)
+    gfat = models.PositiveIntegerField(default=0, verbose_name="Fat (g)")
+    gcarb = models.PositiveIntegerField(default=0, verbose_name="Carbs (g)")
+    gprotein = models.PositiveIntegerField(default=0, verbose_name="Protein (g)")
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
+
+
+class Carbs(FoodComponent):
+    pass
+
+
+class Fats(FoodComponent):
+    pass
+
+
+class Proteins(FoodComponent):
+    pass
+
+
+class Drinks(FoodComponent):
+    pass
 
 
 # Meal Model
@@ -160,7 +195,7 @@ class TDEE(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"TDEE for {self.user.username}: {self.calories} kcal"
+        return f"TDEE for {self.user.username}: {self.calories} kcal" 
 
 
 # Journal Entry Model
@@ -172,3 +207,19 @@ class JournalEntry(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('journal-detail', kwargs={'pk':self.pk})
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages")
+    content = models.TextField(verbose_name="Message Content")
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
