@@ -15,11 +15,12 @@ from django.db.models import Sum, F
 from .utils import calculate_weekly_totals
 from .utils import user_directory_path
 
-
 # ========== Static Pages ==========
 def about(request):
     """Render the About page."""
     return render(request, 'dietapp/about.html')
+
+
 
 
 def contact(request):
@@ -27,17 +28,19 @@ def contact(request):
     return render(request, 'dietapp/contact.html')
 
 
+
+
 # ========== Dashboard ==========
 @login_required
 def dashboard(request):
     """Render the dashboard with user details and health summary."""
-    meals = Meals.objects.filter(mealcreator=request.user).select_related('mealcreator')
-    exercises = Exercise.objects.filter(user=request.user).select_related('user')
+    meal = Meal.objects.filter(mealcreator=request.user).select_related('mealcreator')
+    exercise = Exercise.objects.filter(user=request.user).select_related('user')
     weekly_plan = Weekly.objects.filter(user=request.user).select_related('meal', 'user')
 
     context = {
-        'meals': meals,
-        'exercises': exercises,
+        'meal': meal,
+        'exercise': exercise,
         'weekly_plan': weekly_plan,
     }
     return render(request, 'dietapp/dashboard.html', context)
@@ -74,6 +77,7 @@ def profile(request):
 
 
 
+
 # ========== Meal Management ==========
 @login_required
 def singlemeal(request):
@@ -97,16 +101,20 @@ def singlemeal(request):
     return render(request, "dietapp/single_meal.html", context)
 
 
+
+
 @login_required
 def deletemeal(request, meal_id):
     """Delete a specific meal."""
-   meal = get_object_or_404(Meals, id=meal_id)
-   if meal.mealcreator != request.user:
-      messages.error(request, "You do not have permission to delete this meal.")
-      return redirect('singlemeal')
-   meal.delete()
-   messages.success(request, "Meal successfully deleted!")
-   return redirect('singlemeal')
+    meal = get_object_or_404(Meal, id=meal_id)  # Corrected model reference
+    if meal.mealcreator != request.user:
+        messages.error(request, "You do not have permission to delete this meal.")
+        return redirect('singlemeal')
+    meal.delete()
+    messages.success(request, "Meal successfully deleted!")
+    return redirect('singlemeal')
+
+
 
 
 # ========== Exercise Management ==========
@@ -131,6 +139,8 @@ def add_exercise(request):
     return render(request, "dietapp/add_exercise.html")
 
 
+
+
 # Journal Entry Views
 class JournalListView(LoginRequiredMixin, ListView):
     """View to list all journal entries."""
@@ -144,11 +154,15 @@ class JournalListView(LoginRequiredMixin, ListView):
         return JournalEntry.objects.filter(author=self.request.user).order_by('-date_posted')
 
 
+
+
 class JournalDetailView(LoginRequiredMixin, DetailView):
     """View to display a single journal entry."""
     model = JournalEntry
     template_name = 'dietapp/journal_detail.html'
     context_object_name = 'journal'
+
+
 
 
 class JournalCreateView(LoginRequiredMixin, CreateView):
@@ -163,6 +177,8 @@ class JournalCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+
+
 class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """View to update an existing journal entry."""
     model = JournalEntry
@@ -173,6 +189,8 @@ class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         """Ensure the user updating the journal entry is the author."""
         journal = self.get_object()
         return self.request.user == journal.author
+
+
 
 
 class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -187,10 +205,14 @@ class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == journal.author
 
 
+
+
 @login_required
 def about(request):
     """Static About Page."""
     return render(request, 'dietapp/about.html')
+
+
 
 
 @login_required
@@ -208,6 +230,8 @@ def calculate_tdee(weight, height, age, gender, activity_level):
     gender_value = GENDER_VALUES.get(gender.lower(), 0)
     activity_multiplier = ACTIVITY_MULTIPLIERS[int(activity_level) - 1]
     return ((weight * 10) + (height * 6.25) - (5 * age) + gender_value) * activity_multiplier
+
+
 
 
 @method_decorator(login_required, name='dispatch')
@@ -230,6 +254,8 @@ class TDEEView(TemplateView):
 
         return render(request, self.template_name, {"form": form, "result": result})
         
+
+
 
 # ========== Weekly Meal Planning ==========
 @login_required
@@ -264,6 +290,8 @@ def weekly_plan(request):
     return render(request, 'dietapp/weekly_plan.html', context)
 
 
+
+
 @login_required
 def deletefromplan(request, plan_id):
     """Delete a meal from the weekly plan."""
@@ -271,6 +299,8 @@ def deletefromplan(request, plan_id):
     weekly_entry.delete()
     messages.success(request, "Meal removed from the weekly plan.")
     return redirect('weekly_plan')
+
+
 
 
 class WeeklyCaloriesView(LoginRequiredMixin, TemplateView):
@@ -287,6 +317,8 @@ class WeeklyCaloriesView(LoginRequiredMixin, TemplateView):
             'calories_net': total_calories_intake - total_calories_burned,
         })
         return context
+
+
 
 
 @login_required
@@ -327,6 +359,8 @@ def weekly(request):
     return render(request, "dietapp/weekly_plan.html", context)
 
 
+
+
 def calculate_macros(weekly_meals):
     if not weekly_meals.exists():
         return {"average_fat": 0, "average_carb": 0, "average_protein": 0, "average_calories": 0}
@@ -345,6 +379,8 @@ def calculate_macros(weekly_meals):
         "average_protein": round(totals['total_protein'] / days, 2),
         "average_calories": round(totals['total_calories'] / days, 2),
     }
+
+
 
 
 def calculate_percentage(macros):
