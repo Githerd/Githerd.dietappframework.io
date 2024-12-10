@@ -46,7 +46,7 @@ urlpatterns = [
     path("journal/<int:pk>/delete/", JournalDeleteView.as_view(), name="journal-delete"),  # Delete a journal entry
 
     # ========== TDEE and Weekly Calories ==========
-    path("tdee/", TDEEView.as_view(), name="tdee"),  # TDEE calculator
+    path('tdee/', views.tdee_view, name='tdee'),  # TDEE calculator
     path("weekly-calories/", WeeklyCaloriesView.as_view(), name="weekly-calories"),  # Weekly calories overview
 
     # ========== Messaging ==========
