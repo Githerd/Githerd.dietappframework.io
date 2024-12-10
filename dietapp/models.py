@@ -1,7 +1,7 @@
 from django import forms
 from django.db import models
 from django.db.models import TextChoices
-from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.models import User, Profile, AbstractUser, Carbs, Drinks, Fats, Meals, Proteins, User, Weekly, Meakl, JournalEntry, TDEE, Exercise 
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
@@ -34,7 +34,7 @@ class Profile(models.Model):
     age = models.IntegerField(null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
-    goal = models.CharField(max_length=100, null=True, blank=True)
+    dietary_preferences = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.user.username} Profile'
