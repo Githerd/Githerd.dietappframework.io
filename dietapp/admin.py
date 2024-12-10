@@ -1,7 +1,7 @@
 from django.contrib import admin
-from users.models import Profile
 from django.utils.timezone import localtime
-from .models import (
+from users.models import Profile  # Import Profile from the correct app
+from user.models import (  # Import other models from user.models
     Meal,
     Weekly,
     Vitamin,
@@ -10,9 +10,7 @@ from .models import (
     TDEE,
     JournalEntry,
     Message,
-    Profile,
 )
-
 
 # Custom Admin for Profile
 @admin.register(Profile)
@@ -27,8 +25,7 @@ class ProfileAdmin(admin.ModelAdmin):
     def bmi(self, obj):
         return obj.bmi
     bmi.short_description = 'BMI'
-    
-    
+
 # Inline Admin for Vitamins and Minerals in Meals
 class VitaminInline(admin.TabularInline):
     model = Vitamin
