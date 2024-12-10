@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-from .models import apps
+from .models import Meal, Mineral, Vitamin
 
 User = get_user_model()
 
