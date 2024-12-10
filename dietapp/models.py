@@ -27,33 +27,13 @@ class User(AbstractUser):
 
 
 # User Profile Model
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    image = models.ImageField(
-        default='default.jpg',
-        upload_to=user_directory_path,
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])]
-    )
-    age = models.PositiveIntegerField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)  # Height in centimeters
-    weight = models.FloatField(null=True, blank=True)  # Weight in kilograms
-    goal = models.CharField(
-        max_length=100,
-        choices=[
-            ('lose_weight', 'Lose Weight'),
-            ('gain_weight', 'Gain Weight'),
-            ('maintain_weight', 'Maintain Weight'),
-        ],
-        default='maintain_weight'
-    )
-
-    def clean(self):
-        if self.age and not (0 < self.age <= 150):
-            raise ValidationError("Age must be between 1 and 150.")
-        if self.height and self.height <= 0:
-            raise ValidationError("Height must be a positive value.")
-        if self.weight and self.weight <= 0:
-            raise ValidationError("Weight must be a positive value.")
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
+    age = models.IntegerField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True)
+    goal = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return f'{self.user.username} Profile'
