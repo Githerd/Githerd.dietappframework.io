@@ -12,7 +12,7 @@ from django.views.generic import FormView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils.timezone import now
-from .models import Profile, UserProfile
+from .models import Profile, UserProfile, Meal
 
 
 TDEE = apps.get_model('dietapp', 'TDEE')
@@ -119,6 +119,17 @@ class MineralForm(forms.ModelForm):
     class Meta:
         model = Mineral
         fields = ['name', 'percentage']
+
+
+#Meal
+class MealForm(forms.ModelForm):
+    class Meta:
+        model = Meal
+        fields = ['name', 'calories', 'protein', 'carbs', 'fat', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
 
 
 # Exercise Form
