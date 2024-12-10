@@ -10,7 +10,7 @@ admin.site.register(Carbs)
 admin.site.register(Fats)
 admin.site.register(Proteins)
 admin.site.register(Drinks)
-admin.site.register(Meal
+admin.site.register(Meal)
 admin.site.register(Exercise)
 admin.site.register(HealthData)
 admin.site.register(Weekly)
