@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import TextChoices
 from django.contrib.auth.models import User, AbstractUser
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, FileExtensionValidator
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
@@ -93,48 +95,115 @@ class Drinks(FoodComponent):
     pass
 
 
-# Meal Model
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals")
-    name = models.CharField(max_length=100)
-    calories = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)])
-    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=100, verbose_name="Meal Name")
+    calories = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Calories (kcal)")
+    protein = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Protein (g)")
+    carbs = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Carbs (g)")
+    fat = models.FloatField(default=0.0, validators=[MinValueValidator(0)], verbose_name="Fat (g)")
+    description = models.TextField(blank=True, null=True, verbose_name="Description")
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-date']
+        verbose_name = "Meal"
+        verbose_name_plural = "Meals"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.calories} kcal)"
 
     def get_absolute_url(self):
         return reverse('meal-detail', kwargs={'pk': self.pk})
 
+    def clean(self):
+        """
+        Custom validation to ensure the meal's nutritional values make sense.
+        """
+        if self.calories < 0:
+            raise ValidationError("Calories cannot be negative.")
+        if self.protein < 0 or self.carbs < 0 or self.fat < 0:
+            raise ValidationError("Nutritional values cannot be negative.")
+
+        # Validate calorie consistency: calories = 4 * (protein + carbs) + 9 * fat
+        calculated_calories = (4 * self.protein) + (4 * self.carbs) + (9 * self.fat)
+        if self.calories > calculated_calories:
+            raise ValidationError(
+                f"Calories exceed the calculated value from macros: {calculated_calories:.2f} kcal."
+            )
+
+    @property
+    def macronutrient_distribution(self):
+        """
+        Returns the macronutrient distribution as a percentage.
+        """
+        total_calories = self.calories
+        if total_calories == 0:
+            return {"protein": 0, "carbs": 0, "fat": 0}
+
+        protein_calories = self.protein * 4
+        carb_calories = self.carbs * 4
+        fat_calories = self.fat * 9
+
+        return {
+            "protein": round((protein_calories / total_calories) * 100, 2),
+            "carbs": round((carb_calories / total_calories) * 100, 2),
+            "fat": round((fat_calories / total_calories) * 100, 2),
+        }
+
+
+class MealForm(forms.ModelForm):
+    def clean_calories(self):
+        calories = self.cleaned_data.get('calories')
+        if calories < 0:
+            raise ValidationError("Calories cannot be negative.")
+        return calories
+
+
 
 # Weekly Plan Model
 class Weekly(models.Model):
-    DAYS_OF_WEEK = [
-        ('Monday', 'Monday'),
-        ('Tuesday', 'Tuesday'),
-        ('Wednesday', 'Wednesday'),
-        ('Thursday', 'Thursday'),
-        ('Friday', 'Friday'),
-        ('Saturday', 'Saturday'),
-        ('Sunday', 'Sunday'),
-    ]
-    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="weekly_meals")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_entries")
+    day = models.CharField(max_length=10, choices=DaysOfWeek.choices)
+
+class DaysOfWeek(models.TextChoices):
+    MONDAY = 'Monday', _('Monday')
+    TUESDAY = 'Tuesday', _('Tuesday')
+    WEDNESDAY = 'Wednesday', _('Wednesday')
+    THURSDAY = 'Thursday', _('Thursday')
+    FRIDAY = 'Friday', _('Friday')
+    SATURDAY = 'Saturday', _('Saturday')
+    SUNDAY = 'Sunday', _('Sunday')
+
+
+class Weekly(models.Model):
+    day = models.CharField(
+        max_length=10,
+        choices=DaysOfWeek.choices,
+        verbose_name="Day of the Week"
+    )
+    meal = models.ForeignKey(
+        'Meal',
+        on_delete=models.CASCADE,
+        related_name="weekly_meals",
+        verbose_name="Meal"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="weekly_entries",
+        verbose_name="User"
+    )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['day', 'user'], name='unique_weekly_meal_for_user'),
+        ]
         ordering = ['day']
-        unique_together = ['day', 'user']
+        verbose_name = "Weekly Plan"
+        verbose_name_plural = "Weekly Plans"
 
     def __str__(self):
-        return f"{self.meal.name} on {self.day} for {self.user.username}"
+        return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
 
 
 # Vitamins for Meals
@@ -143,9 +212,13 @@ class Vitamin(models.Model):
     name = models.CharField(max_length=50)
     percentage = models.PositiveIntegerField(default=0)
 
+    class Meta:
+    constraints = [
+        models.CheckConstraint(check=models.Q(percentage__gte=0) & models.Q(percentage__lte=100), name="valid_percentage_range"),
+    ]
+    
     def clean(self):
-        if not 0 <= self.percentage <= 100:
-            raise ValidationError("Percentage must be between 0 and 100.")
+        validate_percentage(self.percentage)
 
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
@@ -157,6 +230,11 @@ class Mineral(models.Model):
     name = models.CharField(max_length=50)
     percentage = models.PositiveIntegerField(default=0)
 
+    class Meta:
+    constraints = [
+        models.CheckConstraint(check=models.Q(percentage__gte=0) & models.Q(percentage__lte=100), name="valid_percentage_range"),
+    ]
+    
     def clean(self):
         if not 0 <= self.percentage <= 100:
             raise ValidationError("Percentage must be between 0 and 100.")
@@ -166,7 +244,10 @@ class Mineral(models.Model):
 
 
 # Exercise Model
-class Exercise(models.Model):
+class Weekly(models.Model):
+    day = models.CharField(max_length=10, choices=DaysOfWeek.choices)
+    
+class ExerciseType(TextChoices):
     EXERCISE_TYPE_CHOICES = [
         ('cardio', 'Cardio'),
         ('strength', 'Strength'),
