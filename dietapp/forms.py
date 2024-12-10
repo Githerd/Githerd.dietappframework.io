@@ -12,6 +12,7 @@ from django.views.generic import FormView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils.timezone import now
+from .models import Profile, UserProfile
 
 
 TDEE = apps.get_model('dietapp', 'TDEE')
