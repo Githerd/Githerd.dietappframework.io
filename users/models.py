@@ -12,7 +12,7 @@ def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     """Custom User Model extending AbstractUser."""
     email = models.EmailField(unique=True)
 
