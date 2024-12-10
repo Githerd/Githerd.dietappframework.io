@@ -11,6 +11,19 @@ from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    age = models.IntegerField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    dietary_preferences = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
+
+
 # Utility function for user file upload paths
 def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
