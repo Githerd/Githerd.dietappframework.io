@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (
+from dietapp.models import (
     Meal, Carbs, Drinks, Fats, Vitamin, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, Message
 )
 
