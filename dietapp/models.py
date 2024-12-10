@@ -9,36 +9,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-
 User = get_user_model()
-
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    age = models.IntegerField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    dietary_preferences = models.TextField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user.username}'s profile"
-
-    @property
-    def bmi(self):
-        if self.height and self.weight:
-            height_in_meters = self.height / 100
-            return round(self.weight / (height_in_meters ** 2), 2)
-        return None
-        
-
-
-
-# Utility function for user file upload paths
-def user_directory_path(instance, filename):
-    return f'profile_pics/{instance.user.username}/{filename}'
-
-
-
 
 # Food Components Models
 class FoodComponent(models.Model):
@@ -64,8 +35,6 @@ class Proteins(FoodComponent):
 
 class Drinks(FoodComponent):
     pass
-
-
 
 
 class Meal(models.Model):
@@ -101,9 +70,6 @@ class Meal(models.Model):
             "fat": round((fat_calories / total_calories) * 100, 2),
         }
 
-
-
-
 class MealForm(forms.ModelForm):
     class Meta:
         model = Meal
@@ -135,9 +101,6 @@ class MealForm(forms.ModelForm):
         if fat is not None and fat < 0:
             raise ValidationError("Fat cannot be negative.")
         return fat
-
-
-
 
 # Weekly Plan Model
 class DaysOfWeek(models.TextChoices):
@@ -180,9 +143,6 @@ class Weekly(models.Model):
     def __str__(self):
         return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
 
-
-
-
 # Vitamins for Meals
 class Vitamin(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
@@ -203,9 +163,6 @@ class Vitamin(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
-
-
-
 
 # Minerals for Meals
 class Mineral(models.Model):
@@ -228,9 +185,6 @@ class Mineral(models.Model):
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
 
-
-
-
 # Exercise Model
 class Exercise(models.Model):
     class ExerciseType(TextChoices):
@@ -249,9 +203,6 @@ class Exercise(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.calories_burned} kcal)"
-
-
-
 
 # TDEE Model
 class TDEE(models.Model):
