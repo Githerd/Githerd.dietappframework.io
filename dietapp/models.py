@@ -4,8 +4,10 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.contrib.auth import get_user_model  # Import get_user_model here
 
-User = get_user_model()
+User = get_user_model()  # Use get_user_model to fetch the custom user model
+
 
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals", db_index=True)
