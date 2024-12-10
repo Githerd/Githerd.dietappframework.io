@@ -1,6 +1,5 @@
-from django.contrib import admin
+from users.models import Profile
 from .models import (
-    Profile,  # Replace UserProfile with Profile
     Meal,
     Weekly,
     Vitamin,
