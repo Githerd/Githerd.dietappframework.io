@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+
 User = get_user_model()
 
 
@@ -63,6 +64,7 @@ class Proteins(FoodComponent):
 
 class Drinks(FoodComponent):
     pass
+
 
 
 
@@ -134,6 +136,9 @@ class MealForm(forms.ModelForm):
             raise ValidationError("Fat cannot be negative.")
         return fat
 
+
+
+
 # Weekly Plan Model
 class DaysOfWeek(models.TextChoices):
     MONDAY = 'Monday', _('Monday')
@@ -175,6 +180,9 @@ class Weekly(models.Model):
     def __str__(self):
         return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
 
+
+
+
 # Vitamins for Meals
 class Vitamin(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
@@ -195,6 +203,9 @@ class Vitamin(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
+
+
+
 
 # Minerals for Meals
 class Mineral(models.Model):
@@ -217,6 +228,9 @@ class Mineral(models.Model):
     def __str__(self):
         return f"{self.name} ({self.percentage}%) in {self.meal.name}"
 
+
+
+
 # Exercise Model
 class Exercise(models.Model):
     class ExerciseType(TextChoices):
@@ -235,6 +249,9 @@ class Exercise(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.calories_burned} kcal)"
+
+
+
 
 # TDEE Model
 class TDEE(models.Model):
