@@ -23,7 +23,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['githerd-dietappframework-io.onrender.com', 'localhost', '127.0.0.1']
 
-ALLOWED_HOSTS = []
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -96,14 +96,22 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static and Media Files
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# URL for serving static files
+STATIC_URL = 'static/'
 
+# Path where static files will be collected
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Additional directories where Django will look for static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Media configuration for user-uploaded files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'  
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
