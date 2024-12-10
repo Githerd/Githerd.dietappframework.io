@@ -12,6 +12,10 @@ from users.models import (
     Message,
 )
 
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    pass 
+    
 # Custom Admin for Profile
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
