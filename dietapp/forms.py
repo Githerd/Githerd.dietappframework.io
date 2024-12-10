@@ -12,39 +12,41 @@ from django.views.generic import FormView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils.timezone import now
-from .models import Meal, Carbs, Drinks, Fats, Meal, Vitamin, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE
-from .forms import TDEEForm, MealForm, UserProfileForm, JournalEntryForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, ContactForm, RegisterForm, CustomPasswordResetForm, WeeklyCaloriesView, TDEEView, WeeklyMealForm, ExerciseForm, MineralForm, VitaminForm
+from django.apps import apps
+from .forms import TDEEForm
 
+TDEE = apps.get_model('dietapp', 'TDEE')
 User = get_user_model()
-
-class UserRegisterForm(UserCreationForm):
-    email = forms.EmailField()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_method = 'POST'
-        self.helper.add_input(Submit('submit', 'Sign Up'))
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
-
 
 
 class ProfileUpdateForm(forms.ModelForm):
-    """
-    Form for updating user profile information including image, age, height, weight, and goal.
-    """
     class Meta:
-        model = Profile  # Directly referencing the Profile model
-        fields = ['image', 'age', 'height', 'weight', 'goal']  # Include all necessary fields
+        model = Profile
+        fields = ['image', 'age', 'height', 'weight', 'goal']
         widgets = {
-            'goal': forms.Select(attrs={'class': 'form-control'}),  # Dropdown for goal
+            'goal': forms.Select(attrs={'class': 'form-control'}),
             'age': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your age'}),
             'height': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your height in cm'}),
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your weight in kg'}),
         }
+
+    def clean_age(self):
+        age = self.cleaned_data.get('age')
+        if age is not None and (age < 1 or age > 150):
+            raise ValidationError(_("Age must be between 1 and 150."))
+        return age
+
+    def clean_height(self):
+        height = self.cleaned_data.get('height')
+        if height is not None and height <= 0:
+            raise ValidationError(_("Height must be a positive value."))
+        return height
+
+    def clean_weight(self):
+        weight = self.cleaned_data.get('weight')
+        if weight is not None and weight <= 0:
+            raise ValidationError(_("Weight must be a positive value."))
+        return weight
 
 
 # Registration Form
@@ -64,6 +66,16 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ['age', 'height', 'weight', 'dietary_preferences']
 
+@property
+def bmi(self):
+    if self.height and self.weight:
+        try:
+            height_in_meters = self.height / 100
+            return round(self.weight / (height_in_meters ** 2), 2)
+        except ZeroDivisionError:
+            return None
+    return None
+
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -71,16 +83,10 @@ class RegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
-
+        
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_method = 'POST'
-        self.helper.add_input(Submit('submit', 'Sign up'))
 
     class Meta:
         model = User
@@ -101,6 +107,22 @@ class MealForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def clean_calories(self):
+        calories = self.cleaned_data.get('calories')
+        if calories < 0:
+            raise ValidationError(_("Calories cannot be negative."))
+        return calories
+
+    def clean(self):
+        cleaned_data = super().clean()
+        protein = cleaned_data.get('protein')
+        carbs = cleaned_data.get('carbs')
+        fat = cleaned_data.get('fat')
+
+        if protein < 0 or carbs < 0 or fat < 0:
+            raise ValidationError(_("Nutritional values cannot be negative."))
+        return cleaned_data
 
 
 # Vitamin Form
