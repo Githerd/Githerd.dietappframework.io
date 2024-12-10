@@ -1,11 +1,16 @@
 from django.contrib import admin
-from dietapp.models import UserProfile
+from .models import (
+    UserProfile,
+    Meal,
+    Weekly,
+    Vitamin,
+    Mineral,
+    Exercise,
+    TDEE,
+    JournalEntry,
+    Message,
+)
 
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'age', 'height', 'weight')
-
-# Register all models in a single call for better clarity
 models_to_register = [
     UserProfile,
     Meal,
@@ -15,9 +20,9 @@ models_to_register = [
     Exercise,
     TDEE,
     JournalEntry,
-    Message
+    Message,
 ]
 
-# Register models in the admin panel
+# Register all models
 for model in models_to_register:
     admin.site.register(model)
