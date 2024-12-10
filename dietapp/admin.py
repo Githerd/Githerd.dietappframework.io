@@ -1,5 +1,4 @@
 from django.contrib import admin
-from users.models import Profile
 from .models import (
     Meal,
     Weekly,
@@ -25,13 +24,6 @@ class MineralInline(admin.TabularInline):
     extra = 1
     verbose_name = "Mineral"
     verbose_name_plural = "Minerals"
-
-
-# Custom Admin for Profile (formerly UserProfile)
-@admin.register(Profile)  # Update to use Profile
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'age', 'height', 'weight')  # Remove 'bmi' if not in Profile
-    search_fields = ('user__username',)
 
 
 # Custom Admin for Meal
