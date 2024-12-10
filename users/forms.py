@@ -7,15 +7,23 @@ from .models import Profile, UserProfile, Meal, Vitamin, Mineral, Weekly, Exerci
 
 User = get_user_model()
 
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'age', 'height', 'weight']
+
 def get_user_profile_model():
-    from users.models import UserProfile
-    return UserProfile
+    try:
+        from users.models import UserProfile
+        return UserProfile
+    except ImportError:
+        raise ImportError("Unable to import UserProfile. Ensure it is defined in users.models.")
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = get_user_profile_model()
         fields = ['user', 'age', 'height', 'weight']
-
+        
 # Registration Form
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
