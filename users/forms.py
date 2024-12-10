@@ -46,13 +46,28 @@ class ProfileUpdateForm(forms.ModelForm):
 
 # Extended User Profile Form (for additional user details)
 class UserProfileForm(forms.ModelForm):
+    """Form for updating user profile details."""
     class Meta:
         model = UserProfile
         fields = ['image', 'age', 'height', 'weight', 'goal']
         widgets = {
-            'goal': forms.Select(attrs={'class': 'form-control'}),
+            'goal': forms.Select(attrs={'class': 'form-control'}),  # Dropdown styling for 'goal'
+            'image': forms.FileInput(attrs={'class': 'form-control'}),  # Styling for file input
         }
-
+        labels = {
+            'image': 'Profile Picture',
+            'age': 'Age (years)',
+            'height': 'Height (cm)',
+            'weight': 'Weight (kg)',
+            'goal': 'Goal',
+        }
+        help_texts = {
+            'age': 'Enter your age in years.',
+            'height': 'Enter your height in centimeters.',
+            'weight': 'Enter your weight in kilograms.',
+            'goal': 'Select your fitness goal.',
+        }
+        
 
 # Login Form (customized if needed)
 class UserLoginForm(AuthenticationForm):
