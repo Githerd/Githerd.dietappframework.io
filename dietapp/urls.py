@@ -22,13 +22,10 @@ from .views import (
     login_view,
     logout_view,
     register,
-    tdee,
     singlemeal,
     weekly,
     deletemeal,
     deletefromplan,
-    dashboard,
-    add_exercise
 )
 
 urlpatterns = [
@@ -63,11 +60,6 @@ urlpatterns = [
     path("meals/weekly/", weekly_plan, name="weekly-plan"),  # Weekly meal planning
     path("meals/weekly/delete/<int:meal_id>/", delete_weekly_plan, name="delete-weekly-plan"),  # Remove a meal from weekly plan
 
-    # Old meal paths for backward compatibility
-    path("singlemeal/", singlemeal, name="singlemeal"),
-    path("deletemeal/", deletemeal, name="deletemeal"),
-    path("deletefromplan/", deletefromplan, name="deletefromplan"),
-
     # ========== Static Pages ==========
     path("about/", about, name="dietapp-about"),  # About page
     path("contact/", contact, name="dietapp-contact"),  # Contact page
@@ -80,6 +72,14 @@ urlpatterns = [
 
     # ========== DietApp ==========
     path("dietapp/", include("dietapp.urls")),  # DietApp routes
-    path("dashboard/", include("dashboard.urls")),
-    path("add-exercise/", include("add_exercise.urls")),
+
+    # ========== Exercise Management ==========
+    path("dashboard/", include("dashboard.urls")),  # Dashboard routes
+    path("add-exercise/", add_exercise, name="add-exercise"),  # Add exercise route
+
+    # ========== Legacy Routes ==========
+    # These routes are maintained for backward compatibility
+    path("singlemeal/", singlemeal, name="singlemeal"),
+    path("deletemeal/", deletemeal, name="deletemeal"),
+    path("deletefromplan/", deletefromplan, name="deletefromplan"),
 ]
