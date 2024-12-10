@@ -1,12 +1,20 @@
-from django.db import models
-from django.conf import settings
-from django.urls import reverse
-from django.core.validators import MinValueValidator, FileExtensionValidator
 from django.contrib.auth.models import AbstractUser
-from django.utils.timezone import now
-from PIL import Image
+from django.db import models
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.contrib import admin
+from .models import UserProfile, Meal, Weekly, Exercise, TDEE, JournalEntry, Vitamin, Mineral
 
 
+User = get_user_model()
+
+user = User.objects.get(username='example')
+user.meals.all()  # Returns all meals related to this user
+
+def clean(self):
+    if self.percentage < 0 or self.percentage > 100:
+        raise ValidationError("Percentage must be between 0 and 100.")
 # Utility function for user file upload paths
 def user_directory_path(instance, filename):
     return f'profile_pics/{instance.user.username}/{filename}'
@@ -123,6 +131,26 @@ class Drinks(models.Model):
         return self.name
 
 
+
+@admin.register(Meal)
+class MealAdmin(admin.ModelAdmin):
+    list_display = ('name', 'calories', 'date', 'user')
+    search_fields = ('name', 'user__username')
+    list_filter = ('date', 'user')
+    ordering = ['-date']
+    filter_horizontal = ('vitamins', 'minerals')  # If Many-to-Many is used
+
+@admin.register(Vitamin)
+class VitaminAdmin(admin.ModelAdmin):
+    list_display = ('name', 'percentage', 'meal')
+    search_fields = ('name', 'meal__name')
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('sender', 'receiver', 'timestamp', 'is_read')
+    search_fields = ('sender__username', 'receiver__username', 'content')
+    list_filter = ('is_read', 'timestamp')
+    
 # Vitamins for Meals
 class Vitamin(models.Model):
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
@@ -144,6 +172,7 @@ class Mineral(models.Model):
 
 
 # Weekly Meal Plan
+# Weekly Plan
 class Weekly(models.Model):
     DAYS_OF_WEEK = [
         ('Monday', 'Monday'),
@@ -160,10 +189,55 @@ class Weekly(models.Model):
 
     class Meta:
         ordering = ['day']
+        unique_together = ['day', 'user']  # Prevent duplicate meals on the same day for a user
 
     def __str__(self):
         return f"{self.meal.name} on {self.day} for {self.user.username}"
 
+    def total_calories_for_week(self):
+        return sum(weekly.meal.calories for weekly in self.user.weekly_entries.all())
+
+
+# Messaging System
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=now)
+    is_read = models.BooleanField(default=False)  # To track read/unread status
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+
+
+# Vitamin and Mineral Validation
+class Vitamin(models.Model):
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
+    name = models.CharField(max_length=50)
+    percentage = models.PositiveIntegerField(default=0)
+
+    def clean(self):
+        if not 0 <= self.percentage <= 100:
+            raise ValidationError("Percentage must be between 0 and 100.")
+
+    def __str__(self):
+        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
+
+
+class Mineral(models.Model):
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="minerals")
+    name = models.CharField(max_length=50)
+    percentage = models.PositiveIntegerField(default=0)
+
+    def clean(self):
+        if not 0 <= self.percentage <= 100:
+            raise ValidationError("Percentage must be between 0 and 100.")
+
+    def __str__(self):
+        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
 
 # Exercise Model
 EXERCISE_TYPE_CHOICES = [
@@ -171,7 +245,12 @@ EXERCISE_TYPE_CHOICES = [
     ('strength', 'Strength'),
 ]
 
-
+class Weekly(models.Model):
+    ...
+    def total_calories_for_day(self, day):
+        meals = self.filter(day=day)
+        return sum(meal.meal.calories for meal in meals)
+        
 class Exercise(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
     name = models.CharField(max_length=100)
@@ -210,6 +289,15 @@ class TDEE(models.Model):
     def __str__(self):
         return f"TDEE for {self.user.username}: {self.calories} kcal"
 
+
+class TDEE(models.Model):
+    ...
+    def recommended_calories(self, goal):
+        if goal == "lose_weight":
+            return self.calories - 500
+        elif goal == "gain_weight":
+            return self.calories + 500
+        return self.calories
 
 # Messaging System
 class Message(models.Model):
