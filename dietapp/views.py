@@ -12,6 +12,9 @@ from .models import TDEE
 from .forms import TDEEForm
 from .utils import calculate_tdee
 from django.db.models import Sum, F
+from .utils import calculate_weekly_totals
+from .utils import user_directory_path
+
 
 # ========== Static Pages ==========
 def about(request):
@@ -268,7 +271,22 @@ def deletefromplan(request, plan_id):
     return redirect('weekly_plan')
 
 
-# ========== Utility Functions ==========
+class WeeklyCaloriesView(LoginRequiredMixin, TemplateView):
+    template_name = "dietapp/weekly_calories.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_week = now().isocalendar()[1]
+        total_calories_intake, total_calories_burned = calculate_weekly_totals(self.request.user, current_week)
+        
+        context.update({
+            'total_calories_intake': total_calories_intake,
+            'total_calories_burned': total_calories_burned,
+            'calories_net': total_calories_intake - total_calories_burned,
+        })
+        return context
+
+
 @login_required
 def weekly(request):
     """
