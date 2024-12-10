@@ -7,20 +7,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
-
-class Meal(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    calories = models.FloatField()
-    date = models.DateField()
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    age = models.PositiveIntegerField(null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    goal = models.CharField(max_length=50, choices=[('lose', 'Lose Weight'), ('gain', 'Gain Weight')])
-
 User = get_user_model()
 
 # Utility function for user file upload paths
