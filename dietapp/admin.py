@@ -12,6 +12,7 @@ from users.models import (
     Message,
 )
     
+
 # Custom Admin for Profile
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -20,12 +21,52 @@ class ProfileAdmin(admin.ModelAdmin):
     list_filter = ('age',)
     readonly_fields = ('bmi',)
     list_editable = ('age', 'weight', 'height')
-    search_help_text = "Search by username or email"
+    search_help_text = "Type the username or email to find users."
+    fieldsets = (
+        ('User Information', {'fields': ('user',)}),
+        ('Physical Attributes', {'fields': ('age', 'weight', 'height', 'bmi')}),
+        ('Profile Image', {'fields': ('image',)}),
+    )
 
     def bmi(self, obj):
-        return obj.bmi
+        try:
+            return obj.bmi
+        except (TypeError, ZeroDivisionError):
+            return None
     bmi.short_description = 'BMI'
 
+
+# Custom Filters
+class HighCalorieMealFilter(admin.SimpleListFilter):
+    title = 'High Calorie Meals'
+    parameter_name = 'calories'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('high', 'Above 500 kcal'),
+            ('low', 'Below 500 kcal'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'high':
+            return queryset.filter(calories__gt=500)
+        if self.value() == 'low':
+            return queryset.filter(calories__lte=500)
+        return queryset
+
+
+# Custom Admin for Meal
+@admin.register(Meal)
+class MealAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user', 'calories', 'protein', 'carbs', 'fat', 'date')
+    list_filter = ('date', 'protein', 'carbs', 'fat', HighCalorieMealFilter)
+    search_fields = ('name', 'user__username')
+    inlines = [VitaminInline, MineralInline]
+    list_select_related = ('user',)
+    list_per_page = 25
+
+
+# Apply similar updates to other models where relevant
 
 # Inline Admin for Vitamins and Minerals in Meals
 class VitaminInline(admin.TabularInline):
@@ -40,17 +81,6 @@ class MineralInline(admin.TabularInline):
     extra = 1
     verbose_name = "Mineral"
     verbose_name_plural = "Minerals"
-
-
-# Custom Admin for Meal
-@admin.register(Meal)
-class MealAdmin(admin.ModelAdmin):
-    list_display = ('name', 'user', 'calories', 'protein', 'carbs', 'fat', 'date')
-    list_filter = ('date', 'protein', 'carbs', 'fat')  # Add macronutrient filtering
-    search_fields = ('name', 'user__username')
-    inlines = [VitaminInline, MineralInline]
-    list_select_related = ('user',)
-    list_per_page = 25  # Enable pagination
 
 
 # Custom Admin for Weekly Plan
