@@ -38,6 +38,17 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.user.username} Profile'
 
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    age = models.IntegerField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    dietary_preferences = models.TextField(null=True, blank=True)
+
+
+    
     @property
     def bmi(self):
         if self.height and self.weight:
