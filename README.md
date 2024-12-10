@@ -63,14 +63,19 @@ python manage.py runserver
 The app will be available at http://127.0.0.1:8000.
 Deployment
 DietApp is designed for deployment on platforms like Render or Heroku. Follow their respective guidelines to deploy your Django app.
-Example Deployment Steps:
--**Install gunicorn and whitenoise for production:**
-pip install gunicorn whitenoise
--**Update settings.py:**
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
--**Use environment variables for secrets in production (e.g., SECRET_KEY, DEBUG).**
--**Configure Procfile for Gunicorn:**
-web: gunicorn dietapp.wsgi:application
+##Example Deployment Steps:
+
+- **Install gunicorn and whitenoise for production:**
+- pip install gunicorn whitenoise
+
+- **Update settings.py:**
+- STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+- **Use environment variables for secrets in production (e.g., SECRET_KEY, DEBUG).**
+
+- **Configure Procfile for Gunicorn:**
+- web: gunicorn dietapp.wsgi:application
+  
 ##Usage
 	1.	Register as a user.
 	2.	Log in and set up your profile.
