@@ -6,7 +6,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'age', 'height', 'weight')
 
 # Register all models in a single call for better clarity
-for models_to_register = [
+models_to_register = [
     User, Carbs, Fats, Proteins, Drinks, Meal, Exercise, Weekly, TDEE, JournalEntry, Vitamin, UserProfile, Mineral, Message
 ]
 
