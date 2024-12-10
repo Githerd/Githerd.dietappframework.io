@@ -5,7 +5,8 @@ from django.core.exceptions import ValidationError
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from .models import Profile, UserProfile
-
+from dietapp.models import Meal
+from users.models import UserProfile
 
 # User Registration Form
 class UserRegisterForm(UserCreationForm):
