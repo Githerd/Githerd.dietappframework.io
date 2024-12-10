@@ -19,6 +19,29 @@ TDEE = apps.get_model('dietapp', 'TDEE')
 User = get_user_model()
 
 
+# Registration Form
+(UserCreationForm):
+    email = forms.EmailField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.add_input(Submit('submit', 'Sign Up'))
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+
+
+class UserUpdateForm(forms.ModelForm):
+    email = forms.EmailField()
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
@@ -30,26 +53,13 @@ class ProfileUpdateForm(forms.ModelForm):
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your weight in kg'}),
         }
 
-    def clean_age(self):
-        age = self.cleaned_data.get('age')
-        if age is not None and (age < 1 or age > 150):
-            raise ValidationError(_("Age must be between 1 and 150."))
-        return age
 
-    def clean_height(self):
-        height = self.cleaned_data.get('height')
-        if height is not None and height <= 0:
-            raise ValidationError(_("Height must be a positive value."))
-        return height
-
-    def clean_weight(self):
-        weight = self.cleaned_data.get('weight')
-        if weight is not None and weight <= 0:
-            raise ValidationError(_("Weight must be a positive value."))
-        return weight
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['age', 'height', 'weight', 'dietary_preferences']
 
 
-# Registration Form
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, required=True, label="Your Name")
     email = forms.EmailField(required=True, label="Your Email")
@@ -60,12 +70,6 @@ class ContactForm(forms.Form):
     )
 
 
-# User Profile Form
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ['age', 'height', 'weight', 'dietary_preferences']
-
 @property
 def bmi(self):
     if self.height and self.weight:
@@ -75,28 +79,6 @@ def bmi(self):
         except ZeroDivisionError:
             return None
     return None
-
-
-class RegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
-        
-
-class UserRegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise ValidationError(_("A user with this email already exists."))
-        return email
         
 
 # Meal Form
