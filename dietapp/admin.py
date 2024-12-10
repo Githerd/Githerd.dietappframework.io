@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    UserProfile,
+    Profile,  # Replace UserProfile with Profile
     Meal,
     Weekly,
     Vitamin,
@@ -27,10 +27,10 @@ class MineralInline(admin.TabularInline):
     verbose_name_plural = "Minerals"
 
 
-# Custom Admin for UserProfile
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'age', 'height', 'weight', 'bmi')
+# Custom Admin for Profile (formerly UserProfile)
+@admin.register(Profile)  # Update to use Profile
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'age', 'height', 'weight')  # Remove 'bmi' if not in Profile
     search_fields = ('user__username',)
 
 
@@ -87,5 +87,3 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ('timestamp',)
     search_fields = ('sender__username', 'receiver__username', 'content')
     list_select_related = ('sender', 'receiver')
-
-
