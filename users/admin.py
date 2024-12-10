@@ -5,11 +5,13 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.db.models import TextChoices
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
 
 
 User = get_user_model()  # Ensures compatibility with custom user models
 
-@admin.register(User)
+@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     pass
     
