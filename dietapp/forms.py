@@ -12,7 +12,7 @@ from django.views.generic import FormView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils.timezone import now
-from .models import Meal, Carbs, Drinks, Fats, Meal, Vitamins, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
+from .models import Meal, Carbs, Drinks, Fats, Meal, Vitamin, Proteins, User, Mineral, Exercise, Weekly, JournalEntry, UserProfile, TDEE, HealthData, Profile
 from .forms import TDEEForm, MealForm, UserProfileForm, TDEEForm, JournalEntryForm, UserRegisterForm, UserUpdateForm, ProfileUpdateForm, ContactForm, RegisterForm, MealForm, CustomPasswordResetForm, HealthDataForm, WeeklyCaloriesView, TDEEView, TDEEForm, JournalEntryForm, WeeklyMealForm, ExerciseForm, MineralForm, VitaminForm
 
 User = get_user_model()
