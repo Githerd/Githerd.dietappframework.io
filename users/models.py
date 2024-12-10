@@ -1,33 +1,27 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, FileExtensionValidator
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
+# User Model
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.username
+
+
+# User Profile Model
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='default.jpg', upload_to='profile_pics')
+    age = models.IntegerField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True)
+    dietary_preferences = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.user.username} Profile'
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        img = Image.open(self.image.path)
-
-        # Resize the image if it is too large
-        if img.height > 300 or img.width > 300:
-            output_size = (300, 300)
-            img.thumbnail(output_size)
-            img.save(self.image.path)
-
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    age = models.PositiveIntegerField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    dietary_preferences = models.TextField(blank=True)
-
-    def __str__(self):
-        return f'{self.user.username} UserProfile'
-        
