@@ -66,9 +66,19 @@ class TDEE(models.Model):
         return f"TDEE for {self.user.username}: {self.calories} kcal"
 
 
+class DaysOfWeek(models.TextChoices):
+    MONDAY = 'MON', _('Monday')
+    TUESDAY = 'TUE', _('Tuesday')
+    WEDNESDAY = 'WED', _('Wednesday')
+    THURSDAY = 'THU', _('Thursday')
+    FRIDAY = 'FRI', _('Friday')
+    SATURDAY = 'SAT', _('Saturday')
+    SUNDAY = 'SUN', _('Sunday')
+
+
 class Weekly(models.Model):
     day = models.CharField(
-        max_length=10,
+        max_length=3,
         choices=DaysOfWeek.choices,
         default=DaysOfWeek.MONDAY,
         verbose_name=_("Day of the Week")
