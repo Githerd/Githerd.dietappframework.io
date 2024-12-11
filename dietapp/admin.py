@@ -6,7 +6,7 @@ from .models import Profile, Meal, Vitamin, Mineral, Weekly, Exercise, TDEE, Jou
 # Use get_user_model() to dynamically fetch the user model
 User = get_user_model()
 
-@admin.register(CustomUser)
+@admin.register(User)
 class CustomUserAdmin(UserAdmin):
     pass
 
