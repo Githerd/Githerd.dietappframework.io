@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -16,8 +16,21 @@ class Profile(models.Model):
     weight = models.FloatField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = "Profile"
+        verbose_name_plural = "Profile"
+        
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+    @property
+    def bmi(self):
+        try:
+            if self.height and self.weight:
+                return round(self.weight / ((self.height / 100) ** 2), 2)
+        except ZeroDivisionError:
+            pass
+        return None
         
 class FoodComponent(models.Model):
     name = models.CharField(max_length=50)
@@ -75,3 +88,20 @@ class Weekly(models.Model):
 
     def __str__(self):
         return f"{self.meal.name} on {self.get_day_display()} for {self.user.username}"
+
+class Vitamin(models.Model):
+    meal = models.ForeignKey('Meal', on_delete=models.CASCADE, related_name='vitamins')
+    name = models.CharField(max_length=50)
+    percentage = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.name} ({self.percentage}%)"
+
+
+class Mineral(models.Model):
+    meal = models.ForeignKey('Meal', on_delete=models.CASCADE, related_name='minerals')
+    name = models.CharField(max_length=50)
+    percentage = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.name} ({self.percentage}%)"
