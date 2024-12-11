@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from . import views as views
+from . import views 
 from django.contrib.auth import views as auth_views
 from django.conf import settings  # For media files handling
 from django.conf.urls.static import static
