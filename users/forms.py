@@ -4,14 +4,16 @@ from django.contrib.auth.forms import UserCreationForm, PasswordResetForm, SetPa
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from users.models import Profile, CustomUser
+from .models import Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry
 
 User = get_user_model()  # Ensures compatibility with custom user models
 
 # User Profile Form
 class UserProfileForm(forms.ModelForm):
     class Meta:
-        model = UserProfile
+        model = Profile  
         fields = ['user', 'age', 'height', 'weight']
+
 
 # Registration Form
 class UserRegisterForm(UserCreationForm):
@@ -27,6 +29,7 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+
 # User Update Form
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField()
@@ -34,6 +37,7 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email']
+
 
 # Profile Update Form
 class ProfileUpdateForm(forms.ModelForm):
@@ -46,6 +50,7 @@ class ProfileUpdateForm(forms.ModelForm):
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter your weight in kg'}),
         }
 
+
 # Meal Form
 class MealForm(forms.ModelForm):
     class Meta:
@@ -55,11 +60,13 @@ class MealForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
+
 # Vitamin Form
 class VitaminForm(forms.ModelForm):
     class Meta:
         model = Vitamin
         fields = ['name', 'percentage']
+
 
 # Mineral Form
 class MineralForm(forms.ModelForm):
@@ -67,17 +74,20 @@ class MineralForm(forms.ModelForm):
         model = Mineral
         fields = ['name', 'percentage']
 
+
 # Exercise Form
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
         fields = ['name', 'type', 'duration', 'calories_burned']
 
+
 # Weekly Meal Plan Form
 class WeeklyMealForm(forms.ModelForm):
     class Meta:
         model = Weekly
         fields = ['day', 'meal']
+
 
 # Journal Entry Form
 class JournalEntryForm(forms.ModelForm):
@@ -87,6 +97,7 @@ class JournalEntryForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'rows': 6, 'placeholder': 'Write your thoughts...'}),
         }
+
 
 # TDEE Form
 class TDEEForm(forms.Form):
@@ -110,11 +121,25 @@ class TDEEForm(forms.Form):
         required=True
     )
 
+    def clean_weight(self):
+        weight = self.cleaned_data.get('weight')
+        if weight <= 0:
+            raise forms.ValidationError("Weight must be a positive value.")
+        return weight
+
+    def clean_height(self):
+        height = self.cleaned_data.get('height')
+        if height <= 0:
+            raise forms.ValidationError("Height must be a positive value.")
+        return height
+
+
 # Health Data Form
 class HealthDataForm(forms.ModelForm):
     class Meta:
-        model = Profile  # Replace 'Profile' if incorrect
+        model = Profile
         fields = ['weight', 'height', 'age']
+
 
 # Custom Password Reset Form
 class CustomPasswordResetForm(PasswordResetForm):
@@ -128,6 +153,13 @@ class CustomPasswordResetForm(PasswordResetForm):
         if not User.objects.filter(email=email).exists():
             raise forms.ValidationError("There is no user registered with the specified email address.")
         return email
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.add_input(Submit('submit', 'Save'))
+
 
 # Custom Set Password Form
 class CustomSetPasswordForm(SetPasswordForm):
@@ -143,3 +175,9 @@ class CustomSetPasswordForm(SetPasswordForm):
         strip=False,
         help_text="Enter the same password as above for verification.",
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.add_input(Submit('submit', 'Save'))
