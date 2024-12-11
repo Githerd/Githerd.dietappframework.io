@@ -1,16 +1,15 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from django.contrib.auth import get_user_model  # Import get_user_model here
-from dietapp.models import CustomUser, Meal, Exercise, Carbs, Fats, Proteins, Drinks, JournalEntry, Vitamin, DaysOfWeek, Weekly, Mineral, Message, TDEE
 from django.db.models import TextChoices
 
-User = get_user_model()  # Ensures compatibility with custom user models
+User = get_user_model()  # Use this dynamically to reference the custom user model
 
-# Abstract Food Components Model
+
 class FoodComponent(models.Model):
     name = models.CharField(max_length=50)
     gfat = models.PositiveIntegerField(default=0, verbose_name="Fat (g)")
@@ -22,22 +21,6 @@ class FoodComponent(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Carbs(FoodComponent):
-    pass
-
-
-class Fats(FoodComponent):
-    pass
-
-
-class Proteins(FoodComponent):
-    pass
-
-
-class Drinks(FoodComponent):
-    pass
 
 
 class Meal(models.Model):
@@ -53,88 +36,8 @@ class Meal(models.Model):
     def __str__(self):
         return f"{self.name} ({self.calories} kcal)"
 
-    @property
-    def macronutrient_distribution(self):
-        total_calories = self.calories
-        if total_calories == 0:
-            return {"protein": 0, "carbs": 0, "fat": 0}
 
-        protein_calories = self.protein * 4
-        carb_calories = self.carbs * 4
-        fat_calories = self.fat * 9
-
-        return {
-            "protein": round((protein_calories / total_calories) * 100, 2),
-            "carbs": round((carb_calories / total_calories) * 100, 2),
-            "fat": round((fat_calories / total_calories) * 100, 2),
-        }
-
-
-class Vitamin(models.Model):
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="vitamins")
-    name = models.CharField(max_length=50)
-    percentage = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
-
-
-class Mineral(models.Model):
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="minerals")
-    name = models.CharField(max_length=50)
-    percentage = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.name} ({self.percentage}%) in {self.meal.name}"
-
-
-class Exercise(models.Model):
-    class ExerciseType(TextChoices):
-        CARDIO = 'cardio', _('Cardio')
-        STRENGTH = 'strength', _('Strength')
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises", db_index=True)
-    name = models.CharField(max_length=100)
-    type = models.CharField(max_length=50, choices=ExerciseType.choices)
-    duration = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name="Duration (minutes)")
-    calories_burned = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Calories Burned")
-    date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.name} ({self.calories_burned} kcal)"
-
-
-class TDEE(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee", db_index=True)
-    calories = models.PositiveIntegerField(default=0)
-    date = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        return f"TDEE for {self.user.username}: {self.calories} kcal"
-
-
-class JournalEntry(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
-    date_posted = models.DateTimeField(default=now)
-
-    def __str__(self):
-        return self.title
-
-    def get_absolute_url(self):
-        return reverse('journal-detail', kwargs={'pk': self.pk})
-
-
-class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages")
-    content = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    def __str__(self):
-        return f"Message from {self.sender.username} to {self.receiver.username}"
-
+# Define other models similarly, ensuring no direct cross-imports
 
 class DaysOfWeek(TextChoices):
     MONDAY = 'Monday', _('Monday')
