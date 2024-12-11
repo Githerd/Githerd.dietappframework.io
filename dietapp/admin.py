@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
+# Use get_user_model() to dynamically fetch the user model
+CustomUser = get_user_model()
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
