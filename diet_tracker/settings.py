@@ -110,7 +110,7 @@ STATIC_URL = 'static/'
 #    os.path.join("/dietapp/static/"),
 #)
 
-STATIC_URL = "/dietapp/static/"
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
@@ -128,7 +128,7 @@ LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'dietapp-home'
 
 # Media configuration for user-uploaded files
-MEDIA_ROOT = BASE_DIR / 'media' # Newer modern and Pythonic way
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Newer modern and Pythonic way
 MEDIA_URL = '/media/'
 
 # Email backend configuration
