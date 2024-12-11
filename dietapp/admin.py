@@ -1,22 +1,12 @@
 from django.contrib import admin
-from django.utils.timezone import localtime
-from users.models import (
-    Profile,
-    Meal,
-    Weekly,
-    Vitamin,
-    Mineral,
-    Exercise,
-    TDEE,
-    JournalEntry,
-    Message,
-)
-    
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth import get_user_model
+
+User = get_user_model(
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     pass
-
 
 # Custom Admin for Profile
 @admin.register(Profile)
