@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Profile
 from django.contrib.auth import get_user_model
+from .models import (
+    CustomUser, Profile, Meal, Vitamin, Mineral, Weekly, Exercise, TDEE, JournalEntry, Message
+)
 
 # Use get_user_model() to dynamically fetch the user model
 CustomUser = get_user_model()
@@ -27,11 +29,13 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def bmi(self, obj):
         try:
-            return obj.bmi
+            if obj.height and obj.weight:
+                return round(obj.weight / ((obj.height / 100) ** 2), 2)
+            return None
         except (TypeError, ZeroDivisionError):
             return None
     bmi.short_description = 'BMI'
-
+ 
 
 # Custom Filters
 class HighCalorieMealFilter(admin.SimpleListFilter):
@@ -62,8 +66,6 @@ class MealAdmin(admin.ModelAdmin):
     list_select_related = ('user',)
     list_per_page = 25
 
-
-# Apply similar updates to other models where relevant
 
 # Inline Admin for Vitamins and Minerals in Meals
 class VitaminInline(admin.TabularInline):
