@@ -9,6 +9,10 @@ from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 from django.contrib import admin
 
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    pass
+
 User = get_user_model()  # Ensures compatibility with custom user models
     
 # Abstract Food Components Model
