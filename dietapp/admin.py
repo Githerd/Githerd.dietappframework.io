@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser, Profile
 from django.contrib.auth import get_user_model
 
 # Use get_user_model() to dynamically fetch the user model
