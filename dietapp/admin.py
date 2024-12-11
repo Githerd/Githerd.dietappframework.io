@@ -1,12 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
-from .models import (
-    CustomUser, Profile, Meal, Vitamin, Mineral, Weekly, Exercise, TDEE, JournalEntry, Message
-)
+from .models import Profile, Meal, Vitamin, Mineral, Weekly, Exercise, TDEE, JournalEntry, Message
 
 # Use get_user_model() to dynamically fetch the user model
-CustomUser = get_user_model()
+User = get_user_model()
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
@@ -55,18 +53,6 @@ class HighCalorieMealFilter(admin.SimpleListFilter):
             return queryset.filter(calories__lte=500)
         return queryset
 
-
-# Custom Admin for Meal
-@admin.register(Meal)
-class MealAdmin(admin.ModelAdmin):
-    list_display = ('name', 'user', 'calories', 'protein', 'carbs', 'fat', 'date')
-    list_filter = ('date', 'protein', 'carbs', 'fat', HighCalorieMealFilter)
-    search_fields = ('name', 'user__username')
-    inlines = [VitaminInline, MineralInline]
-    list_select_related = ('user',)
-    list_per_page = 25
-
-
 # Inline Admin for Vitamins and Minerals in Meals
 class VitaminInline(admin.TabularInline):
     model = Vitamin
@@ -81,6 +67,15 @@ class MineralInline(admin.TabularInline):
     verbose_name = "Mineral"
     verbose_name_plural = "Minerals"
 
+# Custom Admin for Meal
+@admin.register(Meal)
+class MealAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user', 'calories', 'protein', 'carbs', 'fat', 'date')
+    list_filter = ('date', 'protein', 'carbs', 'fat', HighCalorieMealFilter)
+    search_fields = ('name', 'user__username')
+    inlines = [VitaminInline, MineralInline]
+    list_select_related = ('user',)
+    list_per_page = 25
 
 # Custom Admin for Weekly Plan
 @admin.register(Weekly)
