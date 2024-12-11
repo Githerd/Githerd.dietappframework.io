@@ -105,3 +105,79 @@ class Mineral(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.percentage}%)"
+
+class TDEE(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tdee", db_index=True, verbose_name=_("User"))
+    calories = models.PositiveIntegerField(default=0, verbose_name=_("Calories"))
+    date = models.DateField(auto_now_add=True, verbose_name=_("Date"))
+
+    def clean(self):
+        if self.calories < 500 or self.calories > 5000:
+            raise ValidationError(_("Calories must be between 500 and 5000."))
+
+    class Meta:
+        verbose_name = _("TDEE")
+        verbose_name_plural = _("TDEEs")
+
+    def __str__(self):
+        return f"TDEE for {self.user.username}: {self.calories} kcal"
+
+class Message(models.Model):
+    """
+    Represents a message sent between users.
+    """
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages")
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.sender.username} to {self.receiver.username}"
+
+    class Meta:
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
+        ordering = ['-timestamp']
+
+class Exercise(models.Model):
+    """
+    Represents an exercise activity for a user.
+    """
+    class ExerciseType(TextChoices):
+        CARDIO = 'cardio', _('Cardio')
+        STRENGTH = 'strength', _('Strength')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exercises")
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=10, choices=ExerciseType.choices)
+    duration = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name="Duration (minutes)")
+    calories_burned = models.FloatField(validators=[MinValueValidator(0)], verbose_name="Calories Burned")
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.calories_burned} kcal)"
+
+    class Meta:
+        verbose_name = "Exercise"
+        verbose_name_plural = "Exercises"
+        ordering = ['-date']
+
+class JournalEntry(models.Model):
+    """
+    Represents a journal entry written by a user.
+    """
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="journal_entries")
+    date_posted = models.DateTimeField(default=now)
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('journal-detail', kwargs={'pk': self.pk})
+
+    class Meta:
+        verbose_name = "Journal Entry"
+        verbose_name_plural = "Journal Entries"
+        ordering = ['-date_posted']
