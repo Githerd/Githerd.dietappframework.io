@@ -13,6 +13,11 @@ from users.models import (
 )
     
 
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    pass
+
+
 # Custom Admin for Profile
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
