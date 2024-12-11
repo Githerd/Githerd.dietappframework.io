@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.db.models import TextChoices
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
-
+from django.contrib import admin
 
 User = get_user_model()  # Ensures compatibility with custom user models
 
