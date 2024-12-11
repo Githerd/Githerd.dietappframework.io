@@ -6,15 +6,16 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.db.models import TextChoices
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, Meal, Exercise, Carbs, Fats, Proteins, Drinks, JournalEntry, Vitamin, DaysOfWeek, Weekly, Mineral, Message, TDEE
 from django.contrib import admin
+
+User = get_user_model()  # Ensures compatibility with custom user models
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     pass
 
-User = get_user_model()  # Ensures compatibility with custom user models
-    
+
 # Abstract Food Components Model
 class FoodComponent(models.Model):
     name = models.CharField(max_length=50)
