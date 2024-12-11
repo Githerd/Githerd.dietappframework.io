@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.contrib.auth import get_user_model  # Import get_user_model here
+from dietapp.models import Meal
 
 User = get_user_model()  # Use get_user_model to fetch the custom user model
 
