@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from users import views as user_views
-from . import views
+from . import JournalEntry
 from django.urls import path
 from .views import PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView
 
