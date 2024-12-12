@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.contrib import admin
 from users import views as user_views
 from . import views
-from .views import JournalListView, JournalDetailView, JournalCreateView, JournalUpdateView, JournalDeleteView, TDEEView, WeeklyCaloriesView
+from .views import JournalListView, JournalDetailView, JournalCreateView, JournalUpdateView, JournalDeleteView, TDEEView
 
 
 urlpatterns = [
@@ -24,8 +24,7 @@ urlpatterns = [
 
     # TDEE and Weekly Calories
     path("tdee/", views.TDEEView.as_view(), name="tdee-calculate"),
-    path("weekly-calories/", views.WeeklyCaloriesView.as_view(), name="weekly-calories"),
-
+    
     # Messaging
     path("messages/send/", views.send_message, name="send-message"),
     path("messages/inbox/", views.inbox, name="inbox"),
