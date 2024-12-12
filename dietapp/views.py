@@ -85,6 +85,30 @@ class TDEEView(TemplateView):
 
         return render(request, self.template_name, {"form": form, "result": result})
 
+# ========== Login  and Logout View ==========
+def login_view(request):
+    if request.method == "POST":
+
+        # Attempt to sign user in
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        # Check if authentication successful
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect(reverse("home"))
+        else:
+            return render(request, "dietapp/login.html", {
+                "message": "Invalid username and/or password."
+            })
+    else:
+        return render(request, "dietapp/login.html")
+
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("home"))
 
 # ========== Static Pages ==========
 @login_required
