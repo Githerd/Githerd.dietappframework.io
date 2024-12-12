@@ -388,7 +388,7 @@ def register(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "mealplanmaker/register.html", {
+            return render(request, "dietapp/register.html", {
                 "message": "Passwords must match."
             })
 
@@ -397,12 +397,12 @@ def register(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(request, "mealplanmaker/register.html", {
+            return render(request, "dietapp/register.html", {
                 "message": "Username already taken."
             })
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("home"))
     else:
-        return render(request, "mealplanmaker/register.html")
+        return render(request, "dietapp/register.html")
 
     
