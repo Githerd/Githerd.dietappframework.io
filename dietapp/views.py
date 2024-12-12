@@ -37,7 +37,6 @@ class JournalDetailView(LoginRequiredMixin, DetailView):
 class JournalCreateView(LoginRequiredMixin, CreateView):
     """View to create a new journal entry."""
     model = JournalEntry
-    form_class = JournalEntryForm
     template_name = 'dietapp/journal_form.html'
 
     def form_valid(self, form):
@@ -48,7 +47,6 @@ class JournalCreateView(LoginRequiredMixin, CreateView):
 class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """View to update an existing journal entry."""
     model = JournalEntry
-    form_class = JournalEntryForm
     template_name = 'dietapp/journal_form.html'
 
     def test_func(self):
