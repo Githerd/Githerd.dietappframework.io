@@ -131,13 +131,16 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Message from {self.sender.username} to {self.receiver.username}"
-
-    class Meta:
+     class Meta:
         verbose_name = "Message"
         verbose_name_plural = "Messages"
         ordering = ['-timestamp']
+         
+
+    def __str__(self):
+        return f"Message from {self.sender.username} to {self.receiver.username}"
+
+   
 
 class Exercise(models.Model):
     """
