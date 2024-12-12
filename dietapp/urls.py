@@ -8,7 +8,7 @@ from .views import PostListView, PostDetailView, PostCreateView, PostUpdateView,
 
 urlpatterns = [
     # Home Page
-    path("", dietapp_views.index, name="index"),
+    path("", views.index, name="index"),
 
     # User Management
     path("register/", user_views.register, name="register"),
