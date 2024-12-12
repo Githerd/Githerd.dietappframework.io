@@ -1,7 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
 from users import views as user_views
-from . import views 
 from django.contrib.auth import views as auth_views # new line added here
 from django.conf import settings           #New import 1
 from django.conf.urls.static import static #New import 2
