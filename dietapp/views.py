@@ -9,7 +9,7 @@ from django.utils.timezone import now, timedelta
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Sum, F
-from .models import Meal, Exercise, Weekly, JournalEntry, UserProfile
+from .models import Meal, Exercise, Weekly, JournalEntry, Profile
 from dietapp.forms import MealForm, UserUpdateForm, ProfileUpdateForm, JournalEntryForm, TDEEForm
 from .utils import calculate_tdee, calculate_weekly_totals, user_directory_path
 from . models import Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry, User
