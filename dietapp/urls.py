@@ -8,7 +8,7 @@ from .views import JournalListView, JournalDetailView, JournalCreateView, Journa
 
 urlpatterns = [
     # Home Page
-    path("", views.index, name="index"),
+    path("", views.home, name="home"),
 
     # User Management
     path("register/", user_views.register, name="register"),
