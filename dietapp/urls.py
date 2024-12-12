@@ -3,6 +3,9 @@ from django.contrib import admin
 from users import views as user_views
 from dietapp import views as dietapp_views
 from . import views
+from django.urls import path
+from .views import PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView
+
 
 urlpatterns = [
     # Home Page
