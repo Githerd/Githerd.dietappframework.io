@@ -44,6 +44,21 @@ class FoodComponent(models.Model):
     def __str__(self):
         return self.name
 
+class Carbs(FoodComponent):
+    pass
+
+
+class Fats(FoodComponent):
+    pass
+
+
+class Proteins(FoodComponent):
+    pass
+
+
+class Drinks(FoodComponent):
+    pass
+
 class Meal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meals", db_index=True)
     name = models.CharField(max_length=100)
@@ -56,30 +71,6 @@ class Meal(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.calories} kcal)"
-
-class Carbs(models.Model):
-	name = models.TextField(max_length=50)
-	gfat = models.PositiveIntegerField(default=0)
-	gcarb = models.PositiveIntegerField(default=0)
-	gprotein = models.PositiveIntegerField(default=0)
-
-class Fats(models.Model):
-	name = models.TextField(max_length=50)
-	gfat = models.PositiveIntegerField(default=0)
-	gcarb = models.PositiveIntegerField(default=0)
-	gprotein = models.PositiveIntegerField(default=0)
-
-class Proteins(models.Model):
-	name = models.TextField(max_length=50)
-	gfat = models.PositiveIntegerField(default=0)
-	gcarb = models.PositiveIntegerField(default=0)
-	gprotein = models.PositiveIntegerField(default=0)
-
-class Drinks(models.Model):
-	name = models.TextField(max_length=50)
-	gfat = models.PositiveIntegerField(default=0)
-	gcarb = models.PositiveIntegerField(default=0)
-	gprotein = models.PositiveIntegerField(default=0)
 
 class DaysOfWeek(TextChoices):
     MONDAY = 'Monday', _('Monday')
