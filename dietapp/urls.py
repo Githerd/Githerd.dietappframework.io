@@ -16,30 +16,30 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
 
     # Journal Management
-    path("journal/", dietapp_views.JournalListView.as_view(), name="journal-list"),
-    path("journal/<int:pk>/", dietapp_views.JournalDetailView.as_view(), name="journal-detail"),
-    path("journal/new/", dietapp_views.JournalCreateView.as_view(), name="journal-create"),
-    path("journal/<int:pk>/update/", dietapp_views.JournalUpdateView.as_view(), name="journal-update"),
-    path("journal/<int:pk>/delete/", dietapp_views.JournalDeleteView.as_view(), name="journal-delete"),
+    path("journal/", views.JournalListView.as_view(), name="journal-list"),
+    path("journal/<int:pk>/", views.JournalDetailView.as_view(), name="journal-detail"),
+    path("journal/new/", views.JournalCreateView.as_view(), name="journal-create"),
+    path("journal/<int:pk>/update/", views.JournalUpdateView.as_view(), name="journal-update"),
+    path("journal/<int:pk>/delete/", views.JournalDeleteView.as_view(), name="journal-delete"),
 
     # TDEE and Weekly Calories
-    path("tdee/", dietapp_views.TDEEView.as_view(), name="tdee"),
-    path("weekly-calories/", dietapp_views.WeeklyCaloriesView.as_view(), name="weekly-calories"),
+    path("tdee/", views.TDEEView.as_view(), name="tdee-calculate"),
+    path("weekly-calories/", views.WeeklyCaloriesView.as_view(), name="weekly-calories"),
 
     # Messaging
-    path("messages/send/", dietapp_views.send_message, name="send-message"),
-    path("messages/inbox/", dietapp_views.inbox, name="inbox"),
-    path("messages/sent/", dietapp_views.sent_messages, name="sent-messages"),
+    path("messages/send/", views.send_message, name="send-message"),
+    path("messages/inbox/", views.inbox, name="inbox"),
+    path("messages/sent/", views.sent_messages, name="sent-messages"),
 
     # Meal Management
-    path("meals/single/", dietapp_views.singlemeal, name="single-meal"),
-    path("meals/delete/<int:meal_id>/", dietapp_views.deletemeal, name="delete-meal"),
-    path("meals/weekly/", dietapp_views.weekly_plan, name="weekly-plan"),
-    path("meals/weekly/delete/<int:plan_id>/", dietapp_views.deletefromplan, name="delete-weekly-plan"),
+    path("meals/single/", views.singlemeal, name="single-meal"),
+    path("meals/delete/<int:meal_id>/", views.deletemeal, name="delete-meal"),
+    path("meals/weekly/", views.weekly_plan, name="weekly-plan"),
+    path("meals/weekly/delete/<int:plan_id>/", views.deletefromplan, name="delete-weekly-plan"),
 
     # Static Pages
-    path("about/", dietapp_views.about, name="about"),
-    path("contact/", dietapp_views.contact, name="contact"),
+    path("about/", views.about, name="about"),
+    path("contact/", views.contact, name="contact"),
 
     # Admin Panel
     path("admin/", admin.site.urls),
@@ -49,5 +49,5 @@ urlpatterns = [
     path("dashboard/", include(("dashboard.urls", "dashboard"), namespace="dashboard")),
 
     # Exercise Management
-    path("add-exercise/", dietapp_views.add_exercise, name="add-exercise"),
+    path("add-exercise/", views.add_exercise, name="add-exercise"),
 ]
