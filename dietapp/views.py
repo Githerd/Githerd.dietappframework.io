@@ -87,6 +87,13 @@ class TDEEView(TemplateView):
 
 
 # ========== Static Pages ==========
+@login_required
+def home(request):
+    context = {
+        'posts': Post.objects.all()
+    }
+    return render(request, 'dietapp/home.html', context)
+
 def about(request):
     """Render the About page."""
     return render(request, 'dietapp/about.html')
