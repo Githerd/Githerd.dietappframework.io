@@ -26,7 +26,7 @@ urlpatterns = [
     path("tdee/", views.TDEEView.as_view(), name="tdee-calculate"),
     
     # Messaging
-    path("messages/send/", views.send_message, name="send-message"),
+    path("messages/send/", views.send_messages, name="send-message"),
     path("messages/inbox/", views.inbox, name="inbox"),
     path("messages/sent/", views.sent_messages, name="sent-messages"),
 
