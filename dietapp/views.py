@@ -17,6 +17,78 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 
 
+# ========== Journal Views ==========
+class JournalListView(LoginRequiredMixin, ListView):
+    """View to list all journal entries."""
+    model = JournalEntry
+    template_name = 'dietapp/journal_list.html'
+    context_object_name = 'journals'
+    paginate_by = 5
+
+    def get_queryset(self):
+        """Return only journal entries created by the logged-in user."""
+        return JournalEntry.objects.filter(author=self.request.user).order_by('-date_posted')
+
+class JournalDetailView(LoginRequiredMixin, DetailView):
+    """View to display a single journal entry."""
+    model = JournalEntry
+    template_name = 'dietapp/journal_detail.html'
+    context_object_name = 'journal'
+
+class JournalCreateView(LoginRequiredMixin, CreateView):
+    """View to create a new journal entry."""
+    model = JournalEntry
+    form_class = JournalEntryForm
+    template_name = 'dietapp/journal_form.html'
+
+    def form_valid(self, form):
+        """Set the author of the journal entry to the logged-in user."""
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """View to update an existing journal entry."""
+    model = JournalEntry
+    form_class = JournalEntryForm
+    template_name = 'dietapp/journal_form.html'
+
+    def test_func(self):
+        """Ensure the user updating the journal entry is the author."""
+        journal = self.get_object()
+        return self.request.user == journal.author
+
+class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete a journal entry."""
+    model = JournalEntry
+    template_name = 'dietapp/journal_confirm_delete.html'
+    success_url = reverse_lazy('dietapp-home')
+
+    def test_func(self):
+        """Ensure the user deleting the journal entry is the author."""
+        journal = self.get_object()
+        return self.request.user == journal.author
+
+# ========== TDEE Calculation ==========
+@method_decorator(login_required, name='dispatch')
+class TDEEView(TemplateView):
+    template_name = "dietapp/tdee.html"
+
+    def post(self, request, *args, **kwargs):
+        form = TDEEForm(request.POST)
+        result = None
+
+        if form.is_valid():
+            result = calculate_tdee(
+                form.cleaned_data['weight'],
+                form.cleaned_data['height'],
+                form.cleaned_data['age'],
+                form.cleaned_data['gender'],
+                form.cleaned_data['activity_level']
+            )
+
+        return render(request, self.template_name, {"form": form, "result": result})
+
+
 # ========== Static Pages ==========
 def about(request):
     """Render the About page."""
@@ -117,76 +189,6 @@ def add_exercise(request):
         return redirect('dashboard')
     return render(request, "dietapp/add_exercise.html")
 
-# ========== Journal Views ==========
-class JournalListView(LoginRequiredMixin, ListView):
-    """View to list all journal entries."""
-    model = JournalEntry
-    template_name = 'dietapp/journal_list.html'
-    context_object_name = 'journals'
-    paginate_by = 5
-
-    def get_queryset(self):
-        """Return only journal entries created by the logged-in user."""
-        return JournalEntry.objects.filter(author=self.request.user).order_by('-date_posted')
-
-class JournalDetailView(LoginRequiredMixin, DetailView):
-    """View to display a single journal entry."""
-    model = JournalEntry
-    template_name = 'dietapp/journal_detail.html'
-    context_object_name = 'journal'
-
-class JournalCreateView(LoginRequiredMixin, CreateView):
-    """View to create a new journal entry."""
-    model = JournalEntry
-    form_class = JournalEntryForm
-    template_name = 'dietapp/journal_form.html'
-
-    def form_valid(self, form):
-        """Set the author of the journal entry to the logged-in user."""
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-class JournalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """View to update an existing journal entry."""
-    model = JournalEntry
-    form_class = JournalEntryForm
-    template_name = 'dietapp/journal_form.html'
-
-    def test_func(self):
-        """Ensure the user updating the journal entry is the author."""
-        journal = self.get_object()
-        return self.request.user == journal.author
-
-class JournalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """View to delete a journal entry."""
-    model = JournalEntry
-    template_name = 'dietapp/journal_confirm_delete.html'
-    success_url = reverse_lazy('dietapp-home')
-
-    def test_func(self):
-        """Ensure the user deleting the journal entry is the author."""
-        journal = self.get_object()
-        return self.request.user == journal.author
-
-# ========== TDEE Calculation ==========
-@method_decorator(login_required, name='dispatch')
-class TDEEView(TemplateView):
-    template_name = "dietapp/tdee.html"
-
-    def post(self, request, *args, **kwargs):
-        form = TDEEForm(request.POST)
-        result = None
-
-        if form.is_valid():
-            result = calculate_tdee(
-                form.cleaned_data['weight'],
-                form.cleaned_data['height'],
-                form.cleaned_data['age'],
-                form.cleaned_data['gender'],
-                form.cleaned_data['activity_level']
-            )
-
-        return render(request, self.template_name, {"form": form, "result": result})
 
 # ========== Weekly Meal Planning ==========
 @login_required
@@ -212,3 +214,138 @@ def weekly_plan(request):
     weekly_meals = Weekly.objects.filter(user=request.user)
     context = {'meals': meals, 'weekly_meals': weekly_meals}
     return render(request, 'dietapp/weekly_plan.html', context)
+
+
+# ========== tdee calculator ==========
+def tdee(request):
+    context = {
+        "calories": "2000"
+    }
+    return render(request, "mealplanmaker/tdee.html", context)
+
+def singlemeal(request):
+
+    if request.method == "GET":
+
+        # Query that user's meals
+        if request.user.is_authenticated:
+            all_meals = Meals.objects.filter(mealcreator = request.user)
+            no_user = False
+        else:
+            all_meals = None
+            no_user = True
+
+        context = {
+            "all_meals": all_meals,
+            "no_user": no_user
+        }
+
+        return render(request, "mealplanmaker/singlemeal.html", context)
+
+    else:
+
+        # Get inputs from form
+        mealtitle = request.POST["mealtitle"]
+        carb_source = request.POST.get("carbsource")
+        carb_grams = request.POST.get("carbgrams")
+        fat_source = request.POST.get("fatsource")
+        fat_grams = request.POST.get("fatgrams")
+        protein_source = request.POST.get("proteinsource")
+        protein_grams = request.POST.get("proteingrams")
+        drink_source = request.POST.get("drinksource")
+        drinkmililiters = request.POST.get("drinkmililiters")
+        #print(carb_grams)
+
+        # Default quantities are 0
+        if not carb_grams:
+            carb_grams = 0
+        if not fat_grams:
+            fat_grams = 0
+        if not protein_grams:
+            protein_grams = 0
+        if not drinkmililiters:
+            drinkmililiters = 0
+        #print(carb_grams)
+
+        # Prepare variables to save in meal model
+        mealcreator = request.user
+        name = mealtitle
+
+        # Get foods from models
+        mealcarb = Carbs.objects.get(id=carb_source)
+        mealfat = Fats.objects.get(id=fat_source)
+        mealprotein = Proteins.objects.get(id=protein_source)
+        mealdrink = Drinks.objects.get(id=drink_source)
+
+        # Calculate total meal macros
+        totalcarbs = round((int(getattr(mealcarb, "gcarb")) / 100 * int(carb_grams)) + (int(getattr(mealfat, "gcarb")) / 100 * int(fat_grams)) + (int(getattr(mealprotein, "gcarb")) / 100 * int(protein_grams)) + (int(getattr(mealdrink, "gcarb")) / 100 * int(drinkmililiters)))
+        totalfats = round((int(getattr(mealcarb, "gfat")) / 100 * int(carb_grams)) + (int(getattr(mealfat, "gfat")) / 100 * int(fat_grams)) + (int(getattr(mealprotein, "gfat")) / 100 * int(protein_grams)) + (int(getattr(mealdrink, "gfat")) / 100 * int(drinkmililiters)))
+        totalproteins = round((int(getattr(mealcarb, "gprotein")) / 100 * int(carb_grams)) + (int(getattr(mealfat, "gprotein")) / 100 * int(fat_grams)) + (int(getattr(mealprotein, "gprotein")) / 100 * int(protein_grams)) + (int(getattr(mealdrink, "gprotein")) / 100 * int(drinkmililiters)))
+        #print(totalcarbs, totalfats, totalproteins)
+
+        # Calculate total calories
+        calories = (totalcarbs * 4) + (totalfats * 9) + (totalproteins * 4)
+        #print(calories)
+
+        # Make ingredients list
+        carb_name = (getattr(mealcarb, "name"))
+        fat_name = (getattr(mealfat, "name"))
+        protein_name = (getattr(mealprotein, "name"))
+        drink_name = (getattr(mealdrink, "name"))
+
+        # Check for empty inputs
+        if carb_name != "No Carb Source":
+            there_is_carb = True
+        else:
+            there_is_carb = False
+        if fat_name != "No Fat Source":
+            there_is_fat = True
+        else:
+            there_is_fat = False
+        if protein_name != "No Protein Source":
+            there_is_protein = True
+        else:
+            there_is_protein = False
+        if drink_name != "No Drink":
+            there_is_drink = True
+        else:
+            there_is_drink = False
+
+        # Format string quantity and macro name
+        if there_is_carb:
+            carb_ingredient = f'{carb_grams}g of {carb_name} '
+        else:
+            carb_ingredient = ""
+
+        if there_is_fat:
+            fat_ingredient = f'| {fat_grams}g of {fat_name} '
+        else:
+            fat_ingredient = ""
+
+        if there_is_protein:
+            protein_ingredient = f'| {protein_grams}g of {protein_name} '
+        else:
+            protein_ingredient = ""
+
+        if there_is_drink:
+            drink_ingredient = f'| {drinkmililiters}ml of {drink_name}'
+        else:
+            drink_ingredient = ""
+
+        # Full ingredients list
+        ingredients_list = f"{carb_ingredient}{fat_ingredient}{protein_ingredient}{drink_ingredient}"
+        #print(ingredients_list)
+
+        # Save meal
+        meal = Meals(name = name, totalcarb = totalcarbs, totalfat = totalfats, totalprotein = totalproteins, calories = calories, mealcreator = mealcreator, ingredients = ingredients_list)
+        meal.save()
+
+        # Query that user's meals
+        all_meals = Meals.objects.filter(mealcreator = request.user)
+        #print(all_meals)
+
+        context = {
+            "all_meals": all_meals
+        }
+
+        return render(request, "mealplanmaker/singlemeal.html", context)
