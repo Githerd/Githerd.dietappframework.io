@@ -12,7 +12,7 @@ from django.db.models import Sum, F
 from .models import Meal, Exercise, Weekly, JournalEntry, UserProfile
 from dietapp.forms import MealForm, UserUpdateForm, ProfileUpdateForm, JournalEntryForm, TDEEForm
 from .utils import calculate_tdee, calculate_weekly_totals, user_directory_path
-from . models import JournalEntry
+from . models import Meal, Vitamin, Mineral, Exercise, Weekly, JournalEntry, User
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 
