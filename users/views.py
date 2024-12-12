@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages  # For flash messages
 from django.contrib.auth.decorators import login_required
-from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, UserProfileForm
+from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, UserProfileForm, CustomSetPasswordForm, CustomPasswordResetForm
 
 
 # User Registration View
