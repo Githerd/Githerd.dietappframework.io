@@ -2,6 +2,7 @@ from django.urls import path, include
 from django.contrib import admin
 from users import views as user_views
 from dietapp import views as dietapp_views
+from . import views
 
 urlpatterns = [
     # Home Page
