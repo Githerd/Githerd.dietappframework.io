@@ -11,10 +11,10 @@ urlpatterns = [
     path("", views.home, name="home"),
 
     # User Management
-    path("register/", user_views.register, name="register"),
-    path("login/", user_views.login_view, name="login"),
-    path("logout/", user_views.logout_view, name="logout"),
-    path("profile/", user_views.profile, name="profile"),
+    path("register/", views.register, name="register"),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("profile/", views.profile, name="profile"),
 
     # Journal Management
     path("journal/", dietapp_views.JournalListView.as_view(), name="journal-list"),
