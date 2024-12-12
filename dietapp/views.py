@@ -221,7 +221,7 @@ def tdee(request):
     context = {
         "calories": "2000"
     }
-    return render(request, "mealplanmaker/tdee.html", context)
+    return render(request, "dietapp/tdee_calculate.html", context)
 
 def singlemeal(request):
 
@@ -240,7 +240,7 @@ def singlemeal(request):
             "no_user": no_user
         }
 
-        return render(request, "mealplanmaker/singlemeal.html", context)
+        return render(request, "dietapp/singlemeal.html", context)
 
     else:
 
@@ -348,4 +348,4 @@ def singlemeal(request):
             "all_meals": all_meals
         }
 
-        return render(request, "mealplanmaker/singlemeal.html", context)
+        return render(request, "dietapp/single_meal.html", context)
