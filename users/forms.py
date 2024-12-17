@@ -1,58 +1,26 @@
-from django import forms
+from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import Profile
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# Profile Model
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField(blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.user.username} Profile'
 
 
-# User Registration Form
-class UserRegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+# Signals to automatically create or save a Profile instance when a User is created/updated
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
 
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
-
-
-# User Profile Update Form
-class UserUpdateForm(forms.ModelForm):
-    email = forms.EmailField()
-
-    class Meta:
-        model = User
-        fields = ['username', 'email']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
-
-
-# Profile Update Form
-class ProfileUpdateForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['bio', 'location', 'birth_date', 'profile_picture']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
-
-
-# User Password Change Form (Optional Customization)
-class CustomPasswordChangeForm(UserChangeForm):
-    password = None  # Remove password field for safety
-
-    class Meta:
-        model = User
-        fields = ['username', 'email']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
