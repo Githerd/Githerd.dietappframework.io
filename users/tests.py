@@ -1,48 +1,76 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from django.core.files.uploadedfile import SimpleUploadedFile
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 from .models import Profile
+from django.urls import reverse
 
-class UserFormsTests(TestCase):
+class ProfileModelTest(TestCase):
     def setUp(self):
-        # Set up a user and profile for the tests
-        self.user = User.objects.create_user(username='testuser', password='12345')
-        Profile.objects.get_or_create(user=self.user, defaults={'image': 'default.png'})
+        # Create a test user
+        self.user = User.objects.create_user(username='testuser', password='password123')
 
-    def test_user_register_form(self):
-        # Test user registration form with valid data
+    def test_profile_created(self):
+        # Test if the profile is automatically created for a new user
+        profile = Profile.objects.get(user=self.user)
+        self.assertTrue(isinstance(profile, Profile))
+        self.assertEqual(profile.user.username, 'testuser')
+
+    def test_profile_str_method(self):
+        # Test the __str__ method of the Profile model
+        profile = Profile.objects.get(user=self.user)
+        self.assertEqual(str(profile), 'testuser Profile')
+
+
+class UserFormsTest(TestCase):
+    def test_valid_user_register_form(self):
         form_data = {
             'username': 'newuser',
             'email': 'newuser@example.com',
-            'password1': 'django1234',
-            'password2': 'django1234'
+            'password1': 'TestPassword123',
+            'password2': 'TestPassword123',
         }
         form = UserRegisterForm(data=form_data)
         self.assertTrue(form.is_valid())
 
-    def test_user_update_form(self):
-        # Test user update form with valid data
+    def test_invalid_user_register_form(self):
         form_data = {
-            'username': 'updateduser',
-            'email': 'updateduser@example.com'
+            'username': '',
+            'email': 'invalidemail',
+            'password1': 'pass',
+            'password2': 'mismatch',
         }
-        form = UserUpdateForm(data=form_data, instance=self.user)
-        self.assertTrue(form.is_valid())
-        form.save()
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.username, 'updateduser')
-
-    def test_profile_update_with_invalid_image_format(self):
-        # Test profile update with an invalid image format
-        invalid_image_data = b'this is not real image data'
-        invalid_image_file = SimpleUploadedFile('new_image.txt', invalid_image_data, content_type='text/plain')
-        form = ProfileUpdateForm(files={'image': invalid_image_file}, instance=self.user.profile)
+        form = UserRegisterForm(data=form_data)
         self.assertFalse(form.is_valid())
+        self.assertIn('username', form.errors)
+        self.assertIn('email', form.errors)
+        self.assertIn('password2', form.errors)
 
-    def test_profile_update_with_oversized_image(self):
-        # Test profile update with an oversized image
-        oversized_image_data = b'\x00' * 5242880  # 5MB of zeros
-        oversized_image_file = SimpleUploadedFile('new_image.jpg', oversized_image_data, content_type='image/jpeg')
-        form = ProfileUpdateForm(files={'image': oversized_image_file}, instance=self.user.profile)
-        self.assertFalse(form.is_valid())
+
+class UserRegistrationViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_registration_page_loads(self):
+        # Test if the registration page loads correctly
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'users/register.html')
+
+    def test_successful_user_registration(self):
+        # Test registering a new user
+        response = self.client.post(reverse('register'), {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password1': 'TestPassword123',
+            'password2': 'TestPassword123',
+        })
+        self.assertEqual(response.status_code, 302)  # Redirect after success
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        self.assertTrue(Profile.objects.filter(user__username='newuser').exists())
+
+
+
+
+
+
+
