@@ -69,8 +69,25 @@ class UserRegistrationViewTest(TestCase):
         self.assertTrue(Profile.objects.filter(user__username='newuser').exists())
 
 
+class UserProfileViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.client.login(username='testuser', password='password123')
 
+    def test_profile_page_loads(self):
+        # Test if the profile page loads correctly
+        response = self.client.get(reverse('profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'users/profile.html')
 
-
-
-
+    def test_profile_update(self):
+        # Test updating the user profile
+        response = self.client.post(reverse('profile'), {
+            'username': 'updateduser',
+            'email': 'updated@example.com',
+            'bio': 'This is a test bio',
+        })
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, 'updateduser')
+        self.assertEqual(self.user.email, 'updated@example.com')
